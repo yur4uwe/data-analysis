@@ -41,6 +41,7 @@ func ReadCategoricalCSV(path string) (map[string]float64, error) {
 	if err != nil {
 		return nil, err
 	}
+	defer f.Close()
 
 	reader := csv.NewReader(f)
 	reader.Comma = ','

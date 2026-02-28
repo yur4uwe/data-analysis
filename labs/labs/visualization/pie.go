@@ -51,13 +51,7 @@ func RenderRadialPlot(req *common.RenderRequest) (res *common.RenderResponse) {
 		return res.NewErrorf("encountered error while reading csv: %v", err)
 	}
 
-	x := make([]float64, 0, len(values))
 	y := make([]float64, 0, len(values))
-
-	for i := range len(values) {
-		x = append(x, float64(i))
-	}
-
 	labels := make([]string, 0, len(values))
 	for k, v := range values {
 		y = append(y, v)
@@ -66,7 +60,11 @@ func RenderRadialPlot(req *common.RenderRequest) (res *common.RenderResponse) {
 
 	chartCopy := common.CopyChart(RadialChart)
 
-	chartCopy.UpdatePointsForDataset(RadialGraphID, x, y)
+	// Pie charts need simple data array, not point data
+	err = chartCopy.UpdateDataForDataset(RadialGraphID, y)
+	if err != nil {
+		return res.NewErrorf("encountered error while updating data: %v", err)
+	}
 
 	chartCopy.Labels = labels
 

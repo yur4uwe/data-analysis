@@ -44,21 +44,50 @@ export function renderChart(chartConfig: common.Chart) {
     return;
   }
 
+  const chartType = chartConfig.type as keyof ChartTypeRegistry;
+  const hasScales = !["pie", "doughnut", "polarArea"].includes(chartType);
+
   let labels: string[] = [];
   if (chartConfig.labels) {
     labels = chartConfig.labels;
-  } else if (
-    chartConfig.datasets["orig-data"] != undefined &&
-    chartConfig.datasets["orig-data"].pointData
-  ) {
-    labels = chartConfig.datasets["orig-data"].pointData.map(
-      ({ x }: { x: number; y: number }) => x.toFixed(2),
-    );
+  } else if (chartConfig.datasets && hasScales) {
+    console.log("no appropriate labels found, trying to generate out own");
+    let lowBound = Number.MAX_VALUE;
+    let highBound = Number.MIN_VALUE;
+    let length = 0;
+    for (const [_, graph] of Object.entries(chartConfig.datasets)) {
+      if (graph.data && graph.data.length > labels.length) {
+        labels = graph.data.map((_, idx) => idx.toFixed(2));
+        continue;
+      }
+
+      if (graph.pointData) {
+        for (const val of graph.pointData) {
+          lowBound = Math.min(lowBound, val.x);
+          highBound = Math.max(highBound, val.x);
+        }
+        length = Math.max(length, graph.pointData.length);
+        continue;
+      }
+
+      const error = document.getElementById("error-container");
+      if (error) {
+        error.innerHTML = `<div style="color: red; padding: 20px;">Error: missing data attributes</div>`;
+      }
+    }
+    if (
+      lowBound != Number.MAX_VALUE &&
+      highBound != Number.MIN_VALUE &&
+      lowBound != highBound
+    ) {
+      const step = (highBound - lowBound) / length;
+      for (let i = 0; i < length; i++) {
+        labels[i] = (step * i).toFixed(2);
+      }
+    }
   }
 
   // Determine if chart type requires scales (axes)
-  const chartType = chartConfig.type as keyof ChartTypeRegistry;
-  const hasScales = !["pie", "doughnut", "polarArea"].includes(chartType);
 
   // Process datasets based on chart type
   const processedDatasets = Object.values(chartConfig.datasets).map(
@@ -71,9 +100,12 @@ export function renderChart(chartConfig: common.Chart) {
       }
       // For charts with scales, use pointData y-values or data array
       else if (dataset.pointData) {
-        data = dataset.pointData.map((p) => p.y);
+        data = dataset.pointData;
+      } else if (dataset.data) {
+        data = dataset.data;
       } else {
-        data = dataset.data ?? [];
+        console.warn("Empty data");
+        data = [];
       }
 
       // For pie/doughnut charts, generate color palette if not specified

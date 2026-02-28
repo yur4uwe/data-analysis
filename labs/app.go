@@ -8,6 +8,7 @@ import (
 	"labs/labs/common"
 	"labs/labs/polyapprox"
 	"labs/labs/render"
+	"labs/labs/stats"
 	"labs/labs/visualization"
 
 	"github.com/wailsapp/wails/v2/pkg/runtime"
@@ -40,6 +41,7 @@ func (a *App) startup(ctx context.Context) {
 	a.registry[labs.Lab2ID] = labs.NewLab2()
 	a.registry[polyapprox.LabID] = labs.NewLab3()
 	a.registry[visualization.LabID] = labs.NewLab4()
+	a.registry[stats.LabID] = labs.NewLab5()
 
 	fmt.Printf("Registered %d labs (lazy initialization)\n", len(a.registry))
 }
