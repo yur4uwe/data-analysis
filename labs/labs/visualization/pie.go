@@ -1,8 +1,11 @@
 package visualization
 
 import (
+	"encoding/csv"
 	"fmt"
 	"labs/labs/common"
+	"labs/uncsv"
+	"os"
 )
 
 const (
@@ -44,29 +47,37 @@ var (
 	RadialMeta = RadialChart.Meta()
 )
 
+type RevenueSources struct {
+	Sources []string  `csv:"Джерело доходу"`
+	Sum     []float64 `csv:"Сума (грн)"`
+}
+
 func RenderRadialPlot(req *common.RenderRequest) (res *common.RenderResponse) {
 	fmt.Printf("Rendering %s\n", req.ChartID)
-	values, err := ReadCategoricalCSV("../data/lab_4_var_12.csv")
+	f, err := os.Open("../data/lab_4_var_12_revenue_sources.csv")
 	if err != nil {
-		return res.NewErrorf("encountered error while reading csv: %v", err)
+		return res.NewErrorf("encountered error while opening file: %v", err)
 	}
+	defer f.Close()
 
-	y := make([]float64, 0, len(values))
-	labels := make([]string, 0, len(values))
-	for k, v := range values {
-		y = append(y, v)
-		labels = append(labels, k)
+	r := csv.NewReader(f)
+	r.Comma = ';'
+
+	d := uncsv.NewDecoder(r)
+	rec := &RevenueSources{}
+	if err := d.Decode(rec); err != nil {
+		return res.NewErrorf("encountered error while decoding csv: %v", err)
 	}
 
 	chartCopy := common.CopyChart(RadialChart)
 
 	// Pie charts need simple data array, not point data
-	err = chartCopy.UpdateDataForDataset(RadialGraphID, y)
+	err = chartCopy.UpdateDataForDataset(RadialGraphID, rec.Sum)
 	if err != nil {
 		return res.NewErrorf("encountered error while updating data: %v", err)
 	}
 
-	chartCopy.Labels = labels
+	chartCopy.Labels = rec.Sources
 
 	res = common.NewRenderResponse()
 	res.AddChart(RadialChartID, &chartCopy)

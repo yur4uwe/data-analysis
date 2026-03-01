@@ -1,9 +1,11 @@
 package visualization
 
 import (
+	"encoding/csv"
 	"fmt"
 	"labs/labs/common"
-	"labs/labs/render"
+	"labs/uncsv"
+	"os"
 )
 
 const (
@@ -39,20 +41,35 @@ var (
 	LinearMeta = LinearChart.Meta()
 )
 
-func RenderLinear(req *common.RenderRequest) *common.RenderResponse {
+type DailyRevenue struct {
+	Day     []string  `csv:"День"`
+	Revenue []float64 `csv:"Прибуток (грн)"`
+}
+
+func RenderLinear(req *common.RenderRequest) (res *common.RenderResponse) {
 	fmt.Printf("Rendering %s\n", req.ChartID)
-	// x, y, err := polyapprox.ReadSampleCSV("../data/lab_3_var_12.csv")
-	// if err != nil {
-	// 	fmt.Println("failed to open file:", err)
-	// 	return &common.RenderResponse{
-	// 		Error: fmt.Errorf("encountered error while reading csv: %v", err),
-	// 	}
-	// }
-
-	// chartCopy := common.CopyChart(LinearChart)
-	// chartCopy.UpdatePointsForDataset(LinearGraphID, x, y)
-
-	return &common.RenderResponse{
-		Error: render.NewRenderError("impossible to visualize data"),
+	f, err := os.Open("../data/lab_4_var_12_revenue_per_day.csv")
+	if err != nil {
+		return res.NewErrorf("error while opening file: %v", err)
 	}
+	defer f.Close()
+
+	r := csv.NewReader(f)
+	r.Comma = ','
+	d := uncsv.NewDecoder(r)
+	rec := &DailyRevenue{}
+	if err := d.Decode(rec); err != nil {
+		return res.NewErrorf("error while decoding csv: %v", err)
+	}
+
+	chartCopy := common.CopyChart(LinearChart)
+	if err := chartCopy.UpdateDataForDataset(LinearGraphID, rec.Revenue); err != nil {
+		return res.NewErrorf("error while updating chart dataset: %v", err)
+	}
+
+	chartCopy.Labels = rec.Day
+
+	res = common.NewRenderResponse()
+	res.AddChart(LinearChartID, &chartCopy)
+	return res
 }

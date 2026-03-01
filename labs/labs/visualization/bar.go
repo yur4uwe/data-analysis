@@ -1,8 +1,11 @@
 package visualization
 
 import (
+	"encoding/csv"
 	"fmt"
 	"labs/labs/common"
+	"labs/uncsv"
+	"os"
 )
 
 const (
@@ -44,28 +47,38 @@ var (
 	BarMeta = BarChart.Meta()
 )
 
+type Spending struct {
+	Category []string  `csv:"Категорія витрат"`
+	Sum      []float64 `csv:"Сума (грн)"`
+}
+
 func RenderBarPlot(req *common.RenderRequest) (res *common.RenderResponse) {
 	fmt.Printf("Rendering %s\n", req.ChartID)
-	values, err := ReadCategoricalCSV("../data/lab_4_var_12.csv")
-	if err != nil {
-		return res.NewErrorf("encountered error while reading csv: %v", err)
-	}
 
-	y := make([]float64, 0, len(values))
-	labels := make([]string, 0, len(values))
-	for k, v := range values {
-		y = append(y, v)
-		labels = append(labels, k)
+	f, err := os.Open("../data/lab_4_var_12_spending.csv")
+	if err != nil {
+		return res.NewErrorf("error while opening file: %v", err)
+	}
+	defer f.Close()
+
+	r := csv.NewReader(f)
+
+	d := uncsv.NewDecoder(r)
+
+	spending := &Spending{}
+	err = d.Decode(spending)
+	if err != nil {
+		return res.NewErrorf("error decoding csv: %v", err)
 	}
 
 	chartCopy := common.CopyChart(BarChart)
 
-	err = chartCopy.UpdateDataForDataset(BarGraphID, y)
+	err = chartCopy.UpdateDataForDataset(BarGraphID, spending.Sum)
 	if err != nil {
 		return res.NewErrorf("encountered error while updating points: %v", err)
 	}
 
-	chartCopy.Labels = labels
+	chartCopy.Labels = spending.Category
 
 	res = common.NewRenderResponse()
 	res.AddChart(BarChartID, &chartCopy)
