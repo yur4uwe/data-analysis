@@ -44,7 +44,6 @@ const (
 	Color9  = "#a855f7"
 	Color10 = "#e11d48"
 	Color11 = "#10b981"
-	Color12 = "#f97316"
 
 	ColorTransparent = "rgba(0, 0, 0, 0.1)"
 )

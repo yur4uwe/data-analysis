@@ -16,13 +16,13 @@ const (
 
 var (
 	RadialGraph = common.ChartDataset{
-		Label:       "Radial Representation",
-		BorderColor: common.Color2,
+		Label:       "Revenue Sources",
+		BorderColor: common.ColorTransparent,
 		BackgroundColor: []string{
-			"rgba(220, 38, 38, 0.1)",
+			common.Color8,
 			common.Color10,
 			common.Color11,
-			common.Color12,
+			common.Color4,
 			common.Color5,
 		},
 		BorderWidth: 2,
@@ -33,7 +33,7 @@ var (
 
 	RadialChart = common.Chart{
 		ID:          RadialChartID,
-		Title:       "Radial Plot",
+		Title:       "Revenue Sources",
 		Type:        common.ChartTypePie,
 		XAxisLabel:  "Category",
 		YAxisLabel:  "Amount",

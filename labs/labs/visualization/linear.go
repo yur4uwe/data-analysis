@@ -16,7 +16,7 @@ const (
 
 var (
 	LinearGraph = common.ChartDataset{
-		Label:           "Linear Data",
+		Label:           "Revenue $",
 		BorderColor:     common.Color1,
 		BackgroundColor: []string{"rgba(37, 99, 235, 0.1)"},
 		PointRadius:     0,
@@ -27,10 +27,10 @@ var (
 
 	LinearChart = common.Chart{
 		ID:          LinearChartID,
-		Title:       "Linear Representation",
+		Title:       "Revenue Per Day",
 		Type:        common.ChartTypeLine,
-		XAxisLabel:  "X",
-		YAxisLabel:  "Y",
+		XAxisLabel:  "Day №",
+		YAxisLabel:  "Revenue $",
 		XAxisConfig: common.LinearAxis,
 		YAxisConfig: common.LinearAxis,
 		Datasets: map[string]*common.ChartDataset{

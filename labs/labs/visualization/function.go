@@ -64,7 +64,7 @@ var (
 	}
 
 	FunctionGraph = common.ChartDataset{
-		Label:           "Function Graph",
+		Label:           "Function cos(x)*e^(-(|x|)) Graph",
 		BorderColor:     common.Color1,
 		BackgroundColor: []string{common.ColorTransparent},
 		PointRadius:     0,
@@ -114,7 +114,7 @@ func RenderFunction(req *common.RenderRequest) (res *common.RenderResponse) {
 		)
 	}
 
-	n := int((end - start) / step)
+	n := int((end-start)/step) + 1
 
 	x := make([]float64, 0, n)
 	y := make([]float64, 0, n)

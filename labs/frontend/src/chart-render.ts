@@ -51,7 +51,7 @@ export function renderChart(chartConfig: common.Chart) {
   if (chartConfig.labels) {
     labels = chartConfig.labels;
   } else if (chartConfig.datasets && hasScales) {
-    console.log("no appropriate labels found, trying to generate out own");
+    console.log("no appropriate labels found, trying to generate our own");
     let lowBound = Number.MAX_VALUE;
     let highBound = Number.MIN_VALUE;
     let length = 0;
@@ -75,6 +75,9 @@ export function renderChart(chartConfig: common.Chart) {
         error.innerHTML = `<div style="color: red; padding: 20px;">Error: missing data attributes</div>`;
       }
     }
+    console.log(
+      `Lower bound = ${lowBound}, Higher bound = ${highBound}, length = ${length}`,
+    );
     if (
       lowBound != Number.MAX_VALUE &&
       highBound != Number.MIN_VALUE &&
@@ -82,9 +85,10 @@ export function renderChart(chartConfig: common.Chart) {
     ) {
       const step = (highBound - lowBound) / length;
       for (let i = 0; i < length; i++) {
-        labels[i] = (step * i).toFixed(2);
+        labels[i] = (lowBound + step * i).toFixed(2);
       }
     }
+    console.log(`labels len(${labels.length}): ${labels}`);
   }
 
   // Determine if chart type requires scales (axes)

@@ -29,12 +29,6 @@ var (
 )
 
 func init() {
-	fmt.Printf("Initializing lab 5 config with function pointers:\n1-%p\n2-%p\n3-%p\n4-%p\n5-%p\n",
-		CorrelationChart.RenderFunc,
-		RandomSequenceChart.RenderFunc,
-		ProgrammerSalaryChart.RenderFunc,
-		TesterSalaryChart.RenderFunc,
-		EmpiricalDistributionChart.RenderFunc)
 	CorrelationChart.RenderFunc = RenderError
 	Config.Charts[RandomSequenceChartID].RenderFunc = RenderRandomSequence
 	Config.Charts[ProgrammerSalaryBarChartID].RenderFunc = RenderProgrammerSalary

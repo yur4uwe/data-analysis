@@ -16,7 +16,7 @@ const (
 
 var (
 	BarGraph = common.ChartDataset{
-		Label: "Bar Representation",
+		Label: "Spending",
 		BackgroundColor: []string{
 			common.Color1,
 			common.Color2,
@@ -33,7 +33,7 @@ var (
 
 	BarChart = common.Chart{
 		ID:          BarChartID,
-		Title:       "Bar Plot",
+		Title:       "Spending By Category",
 		Type:        common.ChartTypeBar,
 		XAxisLabel:  "Spending Type",
 		YAxisLabel:  "Amount Spent",
