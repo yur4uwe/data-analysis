@@ -16,11 +16,11 @@ const (
 var (
 	Config = common.LabConfig{
 		Lab: Metadata,
-		Charts: map[string]common.Chart{
-			BarChartID:      BarChart,
-			FunctionChartID: FunctionChart,
-			LinearChartID:   LinearChart,
-			RadialChartID:   RadialChart,
+		Charts: map[string]*common.Chart{
+			BarChartID:      &BarChart,
+			FunctionChartID: &FunctionChart,
+			LinearChartID:   &LinearChart,
+			RadialChartID:   &RadialChart,
 		},
 	}
 

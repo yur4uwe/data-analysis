@@ -40,11 +40,11 @@ func (lp Lab3Provider) Render(req *common.RenderRequest) *common.RenderResponse 
 func (lp Lab3Provider) GetConfig() common.LabConfig {
 	return common.LabConfig{
 		Lab: polyapprox.Metadata,
-		Charts: map[string]common.Chart{
-			polyapprox.RandomFitsID: polyapprox.RandomFitsChart,
-			polyapprox.SampleDataID: polyapprox.SampleDataChart,
-			polyapprox.RandomMSEID:  polyapprox.RandomMSEChart,
-			polyapprox.SampleMSEID:  polyapprox.SampleMSEChart,
+		Charts: map[string]*common.Chart{
+			polyapprox.RandomFitsID: &polyapprox.RandomFitsChart,
+			polyapprox.SampleDataID: &polyapprox.SampleDataChart,
+			polyapprox.RandomMSEID:  &polyapprox.RandomMSEChart,
+			polyapprox.SampleMSEID:  &polyapprox.SampleMSEChart,
 		},
 	}
 }

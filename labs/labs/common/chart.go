@@ -62,17 +62,18 @@ func (cd *ChartDataset) UpdatePoints(x, y []float64) error {
 
 // Chart represents one visualization
 type Chart struct {
-	ID             string                   `json:"id"`
-	Title          string                   `json:"title"`
-	Type           ChartType                `json:"type"` // "line", "bar", "scatter", "bubble", "pie"
-	XAxisLabel     string                   `json:"xAxisLabel"`
-	YAxisLabel     string                   `json:"yAxisLabel"`
-	XAxisConfig    AxisConfig               `json:"xAxisConfig,omitempty"` // X-axis scale configuration
-	YAxisConfig    AxisConfig               `json:"yAxisConfig,omitempty"` // Y-axis scale configuration
-	Datasets       map[string]*ChartDataset `json:"datasets"`
-	Labels         []string                 `json:"labels,omitempty"` // For indexed data (line/bar charts)
-	ChartVariables []MutableField           `json:"chartVariables"`   // Fields affecting this chart only
-	Misc           string                   `json:"misc,omitempty"`   // Extra data/metadata
+	ID             string                               `json:"id"`
+	Title          string                               `json:"title"`
+	Type           ChartType                            `json:"type"` // "line", "bar", "scatter", "bubble", "pie"
+	XAxisLabel     string                               `json:"xAxisLabel"`
+	YAxisLabel     string                               `json:"yAxisLabel"`
+	XAxisConfig    AxisConfig                           `json:"xAxisConfig,omitempty"` // X-axis scale configuration
+	YAxisConfig    AxisConfig                           `json:"yAxisConfig,omitempty"` // Y-axis scale configuration
+	Datasets       map[string]*ChartDataset             `json:"datasets"`
+	Labels         []string                             `json:"labels,omitempty"` // For indexed data (line/bar charts)
+	ChartVariables []MutableField                       `json:"chartVariables"`   // Fields affecting this chart only
+	Misc           string                               `json:"misc,omitempty"`   // Extra data/metadata
+	RenderFunc     func(*RenderRequest) *RenderResponse `json:"-"`
 }
 
 func (c *Chart) Meta() ChartMetadata {

@@ -340,8 +340,8 @@ func (lp Lab2Provider) Render(req *common.RenderRequest) *common.RenderResponse 
 func (lp Lab2Provider) GetConfig() common.LabConfig {
 	return common.LabConfig{
 		Lab: metadata,
-		Charts: map[string]common.Chart{
-			mainChartID: main,
+		Charts: map[string]*common.Chart{
+			mainChartID: &main,
 		},
 	}
 }

@@ -27,10 +27,10 @@ func (lp Lab5Provider) Render(req *common.RenderRequest) *common.RenderResponse 
 		return res.NewError("request is nil")
 	}
 
-	switch req.ChartID {
-	case stats.ErrorAnalysisChartID:
-		return stats.RenderErrorAnalysis(req)
-	default:
-		return res.NewErrorf("unrecognized chart ID: %s", req.ChartID)
+	chart, ok := stats.Config.Charts[req.ChartID]
+	if !ok {
+		return res.NewErrorf("chart with id %s not found", req.ChartID)
 	}
+
+	return chart.RenderFunc(req)
 }
