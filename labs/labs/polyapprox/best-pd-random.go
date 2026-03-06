@@ -70,6 +70,7 @@ func RenderRandomPolynomialMSE(req *charting.RenderRequest) *charting.RenderResp
 	maxDegree := min(len(x)-1, 45)
 	degrees := make([]float64, 0, maxDegree)
 	errs := make([]float64, 0, maxDegree)
+	labels := make([]string, 0, maxDegree)
 
 	for degree := range maxDegree - 1 {
 		degree += 1
@@ -78,6 +79,7 @@ func RenderRandomPolynomialMSE(req *charting.RenderRequest) *charting.RenderResp
 			fmt.Println("Error:", err)
 			continue
 		}
+		labels = append(labels, fmt.Sprintf("%d", degree))
 		degrees = append(degrees, float64(degree))
 		errs = append(errs, CalculateMSE(x, y, coeffs))
 	}

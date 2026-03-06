@@ -57,6 +57,7 @@ func RenderSamplePolynomialMSE(req *charting.RenderRequest) *charting.RenderResp
 	maxDegree := min(len(points.X)-1, 45)
 	degrees := make([]float64, 0, maxDegree)
 	errs := make([]float64, 0, maxDegree)
+	labels := make([]string, 0, maxDegree)
 
 	for degree := range maxDegree - 1 {
 		degree += 1
@@ -65,12 +66,15 @@ func RenderSamplePolynomialMSE(req *charting.RenderRequest) *charting.RenderResp
 			fmt.Println("Error:", err)
 			continue
 		}
+		labels = append(labels, fmt.Sprintf("%d", degree))
 		degrees = append(degrees, float64(degree))
 		errs = append(errs, CalculateMSE(points.X, points.Y, coeffs))
 	}
 
 	chartCopy := charting.CopyChart(RandomMSEChart)
 	chartCopy.UpdatePointsForDataset(OriginalDataID, degrees, errs)
+
+	chartCopy.Labels = labels
 
 	return &charting.RenderResponse{
 		Charts: map[string]charting.Chart{

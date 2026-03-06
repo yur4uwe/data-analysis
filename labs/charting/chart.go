@@ -111,6 +111,27 @@ func (c *Chart) UpdateDataForDataset(datasetId string, data []float64) error {
 	return nil
 }
 
+// GenerateLabels derives chart Labels from the x-values of PointData across all datasets.
+// It picks the dataset with the most points and formats each x-value with the given decimal precision.
+// This should be called after all datasets have been populated with point data.
+func (c *Chart) GenerateLabels(precision int) {
+	var best []DataPoint
+	for _, ds := range c.Datasets {
+		if len(ds.PointData) > len(best) {
+			best = ds.PointData
+		}
+	}
+	if len(best) == 0 {
+		return
+	}
+	labels := make([]string, len(best))
+	format := fmt.Sprintf("%%.%df", precision)
+	for i, p := range best {
+		labels[i] = fmt.Sprintf(format, p.X)
+	}
+	c.Labels = labels
+}
+
 type ChartMetadata struct {
 	ID             string                    `json:"id"`
 	Title          string                    `json:"title"`

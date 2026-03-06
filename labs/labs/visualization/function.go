@@ -127,6 +127,7 @@ func RenderFunction(req *charting.RenderRequest) (res *charting.RenderResponse) 
 
 	chartCopy := charting.CopyChart(FunctionChart)
 	chartCopy.UpdatePointsForDataset(FunctionGraphID, x, y)
+	chartCopy.GenerateLabels(2)
 
 	res = charting.NewRenderResponse()
 	res.AddChart(FunctionChartID, &chartCopy)

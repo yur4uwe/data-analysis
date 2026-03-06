@@ -1,5 +1,8 @@
 import { Chart, ChartTypeRegistry } from "chart.js";
+import ChartDataLabels from "chartjs-plugin-datalabels";
 import { charting } from "../wailsjs/go/models";
+
+Chart.register(ChartDataLabels);
 
 // Store chart instances globally for access
 declare global {
@@ -35,9 +38,8 @@ export function renderChart(chartConfig: charting.Chart) {
   canvas.id = `chart-${chartConfig.id}`;
 
   canvasWrapper.appendChild(canvas);
-  container!.appendChild(canvasWrapper);
+  container.appendChild(canvasWrapper);
 
-  // Initialize Chart.js
   const ctx = canvas.getContext("2d");
   if (!ctx) {
     console.log("Canvas context is null or undefined!");
@@ -48,48 +50,9 @@ export function renderChart(chartConfig: charting.Chart) {
 
   console.log("Chart Type:", chartType);
   const hasScales = !["pie", "doughnut", "polarArea"].includes(chartType);
+  const hasContinuousAxes = ["scatter", "line", "bubble"].includes(chartType);
 
-  let labels: string[] = [];
-  if (chartConfig.labels) {
-    labels = chartConfig.labels;
-  } else if (chartConfig.datasets && hasScales) {
-    console.log("no appropriate labels found, trying to generate our own");
-    let lowBound = Number.MAX_VALUE;
-    let highBound = Number.MIN_VALUE;
-    let length = 0;
-    for (const [_, graph] of Object.entries(chartConfig.datasets)) {
-      if (graph.data && graph.data.length > labels.length) {
-        labels = graph.data.map((_, idx) => idx.toFixed(2));
-        continue;
-      }
-
-      if (graph.pointData) {
-        for (const val of graph.pointData) {
-          lowBound = Math.min(lowBound, val.x);
-          highBound = Math.max(highBound, val.x);
-        }
-        length = Math.max(length, graph.pointData.length);
-        continue;
-      }
-
-      const error = document.getElementById("error-container");
-      if (error) {
-        error.innerHTML = `<div style="color: red; padding: 20px;">Error: missing data attributes</div>`;
-      }
-    }
-    if (
-      lowBound != Number.MAX_VALUE &&
-      highBound != Number.MIN_VALUE &&
-      lowBound != highBound
-    ) {
-      const step = (highBound - lowBound) / length;
-      for (let i = 0; i < length; i++) {
-        labels[i] = (lowBound + step * i).toFixed(2);
-      }
-    }
-  }
-
-  // Determine if chart type requires scales (axes)
+  const labels: string[] = hasContinuousAxes ? [] : (chartConfig.labels ?? []);
 
   // Process datasets based on chart type
   const processedDatasets = Object.values(chartConfig.datasets).map(
@@ -171,6 +134,21 @@ export function renderChart(chartConfig: charting.Chart) {
           usePointStyle: true,
         },
       },
+      datalabels:
+        chartType === "pie"
+          ? {
+              color: "#ffffff",
+              font: { weight: "bold" as const, size: 14 },
+              formatter: (value: number, ctx: any) => {
+                const total = (ctx.dataset.data as number[]).reduce(
+                  (a, b) => a + b,
+                  0,
+                );
+                const pct = ((value / total) * 100).toFixed(1);
+                return `${value}\n(${pct}%)`;
+              },
+            }
+          : { display: false },
       tooltip: {
         backgroundColor: "rgba(0, 0, 0, 0.9)",
         titleColor: "#ffffff",
@@ -183,12 +161,18 @@ export function renderChart(chartConfig: charting.Chart) {
     },
   };
 
+  console.log(ctx);
+
   // Only add scales for charts that use them
   if (hasScales) {
     chartOptions.scales = {
       x: {
+        type: hasContinuousAxes ? ("linear" as const) : undefined,
+        border: {
+          display: !hasContinuousAxes,
+        },
         title: {
-          display: true,
+          display: !!chartConfig.xAxisLabel,
           text: chartConfig.xAxisLabel,
           color: "#000000",
           font: {
@@ -203,12 +187,20 @@ export function renderChart(chartConfig: charting.Chart) {
           },
         },
         grid: {
-          color: "rgba(0, 0, 0, 0.1)",
+          color: (ctx: any) =>
+            hasContinuousAxes && ctx.tick?.value === 0
+              ? "#000000"
+              : "rgba(0,0,0,0.1)",
+          lineWidth: (ctx: any) =>
+            hasContinuousAxes && ctx.tick?.value === 0 ? 2 : 1,
         },
       },
       y: {
+        border: {
+          display: !hasContinuousAxes,
+        },
         title: {
-          display: true,
+          display: !!chartConfig.yAxisLabel,
           text: chartConfig.yAxisLabel,
           color: "#000000",
           font: {
@@ -222,8 +214,14 @@ export function renderChart(chartConfig: charting.Chart) {
             size: 12,
           },
         },
+        ...(hasContinuousAxes && { suggestedMin: 0, suggestedMax: 0 }),
         grid: {
-          color: "rgba(0, 0, 0, 0.1)",
+          color: (ctx: any) =>
+            hasContinuousAxes && ctx.tick?.value === 0
+              ? "#000000"
+              : "rgba(0,0,0,0.1)",
+          lineWidth: (ctx: any) =>
+            hasContinuousAxes && ctx.tick?.value === 0 ? 2 : 1,
         },
       },
     };

@@ -7,11 +7,12 @@ import { createLabTabs, updateAllFieldLabels } from "./lab-init";
 import { GetLabs } from "../wailsjs/go/main/App";
 import { charting } from "../wailsjs/go/models";
 import { Chart, registerables } from "chart.js";
+import ChartDataLabels from "chartjs-plugin-datalabels";
 import { EventsOn } from "../wailsjs/runtime";
 import { renderChart } from "./chart-render";
 import { registry } from "./registry";
 
-Chart.register(...registerables);
+Chart.register(...registerables, ChartDataLabels);
 
 // State
 
