@@ -97,7 +97,6 @@ var (
 		ChartVariables: []charting.MutableField{
 			MaxSampleSizeField,
 		},
-		// RenderFunc set in init() to avoid initialization cycle
 	}
 )
 

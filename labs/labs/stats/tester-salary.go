@@ -105,8 +105,8 @@ func RenderTesterSalary(req *charting.RenderRequest) (res *charting.RenderRespon
 	}
 
 	copyChart.ChartVariables[0].Label = fmt.Sprintf(
-		"Tester salary statistics:\nAverage = %.2f\nMedian = %.2f\nDeviation = %.2f\nVariance = %.2f\nMin = %.2f",
-		avg, median, stddev, variance, minSalary,
+		"Tester salary statistics:\nAverage = %.2f\nMedian = %.2f\nDeviation = %.2f\nVariance = %.2f\n",
+		avg, median, stddev, variance,
 	)
 
 	res = charting.NewRenderResponse()

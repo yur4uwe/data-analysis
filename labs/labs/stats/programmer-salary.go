@@ -68,7 +68,8 @@ func RenderProgrammerSalary(req *charting.RenderRequest) (res *charting.RenderRe
 	}
 
 	salaries := salariesFor(Programmer)
-	buckets := make([]float64, 5)
+	numBuckets := int(math.Round(1 + 3.334*math.Log10(float64(len(salaries)))))
+	buckets := make([]float64, numBuckets)
 	min_salary := math.Inf(1)
 	max_salary := math.Inf(-1)
 	for i := range salaries {

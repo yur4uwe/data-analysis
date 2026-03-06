@@ -45,6 +45,8 @@ export function renderChart(chartConfig: charting.Chart) {
   }
 
   const chartType = chartConfig.type as keyof ChartTypeRegistry;
+
+  console.log("Chart Type:", chartType);
   const hasScales = !["pie", "doughnut", "polarArea"].includes(chartType);
 
   let labels: string[] = [];
@@ -75,9 +77,6 @@ export function renderChart(chartConfig: charting.Chart) {
         error.innerHTML = `<div style="color: red; padding: 20px;">Error: missing data attributes</div>`;
       }
     }
-    console.log(
-      `Lower bound = ${lowBound}, Higher bound = ${highBound}, length = ${length}`,
-    );
     if (
       lowBound != Number.MAX_VALUE &&
       highBound != Number.MIN_VALUE &&
@@ -88,7 +87,6 @@ export function renderChart(chartConfig: charting.Chart) {
         labels[i] = (lowBound + step * i).toFixed(2);
       }
     }
-    console.log(`labels len(${labels.length}): ${labels}`);
   }
 
   // Determine if chart type requires scales (axes)
@@ -142,7 +140,7 @@ export function renderChart(chartConfig: charting.Chart) {
         hidden: dataset.hidden ?? false,
         pointRadius: dataset.pointRadius ?? 0,
         borderWidth: dataset.borderWidth ?? 2,
-        showLine: dataset.showLine !== false,
+        showLine: dataset.showLine === true,
       };
     },
   );

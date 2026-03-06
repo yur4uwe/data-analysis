@@ -8,37 +8,65 @@ import (
 )
 
 const (
-	EmpiricalDistributionChartID = "empirical-distribution"
-	EmpiricalDistributionGraphID = "empirical-distribution"
+	EmpiricalDistributionChartID      = "empirical-distribution"
+	EmpiricalDistributionProgrammerID = "empirical-distribution-programmer"
+	EmpiricalDistributionTesterID     = "empirical-distribution-tester"
 )
 
 var (
-	EmpiricalDistributionGraph = charting.ChartDataset{
-		Label:           "Empirical Distribution Function F(x)",
+	EmpiricalDistributionProgrammerGraph = charting.ChartDataset{
+		Label:           "Programmer F(x)",
 		BorderColor:     charting.Color2,
 		BackgroundColor: []string{charting.ColorTransparent},
 		ShowLine:        true,
 		PointRadius:     3,
 		BorderWidth:     2,
-		Togglable:       false,
+		Togglable:       true,
+	}
+
+	EmpiricalDistributionTesterGraph = charting.ChartDataset{
+		Label:           "Tester F(x)",
+		BorderColor:     charting.Color4,
+		BackgroundColor: []string{charting.ColorTransparent},
+		ShowLine:        true,
+		PointRadius:     3,
+		BorderWidth:     2,
+		Togglable:       true,
 	}
 
 	EmpiricalDistributionChart = charting.Chart{
 		ID:          EmpiricalDistributionChartID,
 		Title:       "Empirical Distribution Function of Salaries",
-		Type:        charting.ChartTypeLine,
+		Type:        charting.ChartTypeScatter,
 		XAxisLabel:  "Salary (USD)",
 		XAxisConfig: charting.LinearAxis,
 		YAxisLabel:  "F(x) - Cumulative Probability",
 		YAxisConfig: charting.LinearAxis,
 		Datasets: map[string]*charting.ChartDataset{
-			EmpiricalDistributionGraphID: &EmpiricalDistributionGraph,
+			EmpiricalDistributionProgrammerID: &EmpiricalDistributionProgrammerGraph,
+			EmpiricalDistributionTesterID:     &EmpiricalDistributionTesterGraph,
 		},
 	}
 )
 
+func buildEDF(salaries []float64) (x, y []float64) {
+	sorted := make([]float64, len(salaries))
+	copy(sorted, salaries)
+	sort.Float64s(sorted)
+	n := float64(len(sorted))
+
+	if len(sorted) > 0 {
+		x = append(x, sorted[0]-1)
+		y = append(y, 0)
+	}
+	for i, v := range sorted {
+		x = append(x, v)
+		y = append(y, float64(i+1)/n)
+	}
+	return
+}
+
 func RenderEmpiricalDistribution(req *charting.RenderRequest) (res *charting.RenderResponse) {
-	// Load data if not already loaded
 	if salaryRecords == nil {
 		f, err := os.Open("../data/lab_5_var_12.csv")
 		if err != nil {
@@ -54,32 +82,16 @@ func RenderEmpiricalDistribution(req *charting.RenderRequest) (res *charting.Ren
 		}
 	}
 
-	salaries := make([]float64, len(salaryRecords.Salary))
-	copy(salaries, salaryRecords.Salary)
-
-	// Sort salaries for easier cumulative probability calculation
-	sort.Float64s(salaries)
-
-	n := float64(len(salaries))
-
-	x := make([]float64, 0)
-	y := make([]float64, 0)
-
-	// Add 0 value for cumulative probability before first salary
-	if len(salaries) > 0 {
-		x = append(x, salaries[0]-1)
-		y = append(y, 0)
-	}
-
-	for i, salary := range salaries {
-		fx := float64(i+1) / n
-		x = append(x, salary)
-		y = append(y, fx)
-	}
-
 	copyChart := charting.CopyChart(EmpiricalDistributionChart)
-	if err := copyChart.UpdatePointsForDataset(EmpiricalDistributionGraphID, x, y); err != nil {
-		return res.NewErrorf("error updating dataset: %s", err.Error())
+
+	px, py := buildEDF(salariesFor(Programmer))
+	if err := copyChart.UpdatePointsForDataset(EmpiricalDistributionProgrammerID, px, py); err != nil {
+		return res.NewErrorf("error updating programmer dataset: %s", err.Error())
+	}
+
+	tx, ty := buildEDF(salariesFor(Tester))
+	if err := copyChart.UpdatePointsForDataset(EmpiricalDistributionTesterID, tx, ty); err != nil {
+		return res.NewErrorf("error updating tester dataset: %s", err.Error())
 	}
 
 	res = charting.NewRenderResponse()

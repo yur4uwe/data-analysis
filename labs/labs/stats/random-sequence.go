@@ -28,9 +28,7 @@ var (
 		Label:           "Sequence of random numbers",
 		BorderColor:     charting.Color6,
 		BackgroundColor: []string{charting.Color5},
-		PointRadius:     0,
-		ShowLine:        true,
-		BorderWidth:     0,
+		PointRadius:     3,
 		Togglable:       false,
 	}
 )

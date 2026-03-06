@@ -76,7 +76,6 @@ type SalaryRecord struct {
 	Salary          []float64      `csv:"Зарплата (USD)"`
 }
 
-// GenerateNormalSamples generates samples from normal distribution
 func GenerateNormalSamples(mean, stddev float64, sampleCount int) []float64 {
 	samples := make([]float64, sampleCount)
 	for i := range sampleCount {
@@ -85,7 +84,6 @@ func GenerateNormalSamples(mean, stddev float64, sampleCount int) []float64 {
 	return samples
 }
 
-// CalculateMean computes the mean of a slice
 func CalculateMean(data []float64) float64 {
 	if len(data) == 0 {
 		return 0
@@ -97,21 +95,10 @@ func CalculateMean(data []float64) float64 {
 	return sum / float64(len(data))
 }
 
-// CalculateStdDev computes the standard deviation of a slice
 func CalculateStdDev(data []float64, mean float64) float64 {
-	if len(data) == 0 {
-		return 0
-	}
-	sumSquares := 0.0
-	for _, v := range data {
-		diff := v - mean
-		sumSquares += diff * diff
-	}
-	variance := sumSquares / float64(len(data))
-	return math.Sqrt(variance)
+	return math.Sqrt(CalculateVariance(data, mean))
 }
 
-// CalculateVariance computes the variance of a slice
 func CalculateVariance(data []float64, mean float64) float64 {
 	if len(data) == 0 {
 		return 0
@@ -124,7 +111,6 @@ func CalculateVariance(data []float64, mean float64) float64 {
 	return sumSquares / float64(len(data))
 }
 
-// CalculateMedian computes the median of a slice
 func CalculateMedian(data []float64) float64 {
 	if len(data) == 0 {
 		return 0
@@ -139,7 +125,6 @@ func CalculateMedian(data []float64) float64 {
 	return sorted[n/2]
 }
 
-// salariesFor returns all salaries for the given position
 func salariesFor(position PositionType) []float64 {
 	if salaryRecords == nil {
 		return nil
