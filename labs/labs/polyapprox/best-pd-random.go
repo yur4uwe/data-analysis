@@ -15,6 +15,7 @@ var (
 	mseGraph = charting.ChartDataset{
 		Label:       "MSE vs Degree",
 		BorderColor: charting.Color11,
+		ShowLine:    true,
 	}
 
 	RandomMSEChart = charting.Chart{

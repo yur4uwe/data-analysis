@@ -50,6 +50,11 @@ EventsOn("renderComplete", (data: charting.RenderResponse) => {
 
     // Update all field labels to reflect actual rendered values
     updateAllFieldLabels(activeChartData);
+
+    const container = document.getElementById("error-container");
+    if (container) {
+      container.innerHTML = "";
+    }
   }
 });
 

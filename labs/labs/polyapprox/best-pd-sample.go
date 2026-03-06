@@ -5,7 +5,9 @@ import (
 	"fmt"
 	"labs/charting"
 	"labs/labs/render"
+	"labs/uncsv"
 	"math"
+	"os"
 )
 
 const (
@@ -31,26 +33,40 @@ var (
 )
 
 func RenderSamplePolynomialMSE(req *charting.RenderRequest) *charting.RenderResponse {
-	x, y, err := ReadSampleCSV("../data/lab_3_var_12.csv")
-	if err != nil {
-		return &charting.RenderResponse{
-			Error: render.NewRenderError("failed to read CSV file"),
+	if points == nil {
+		f, err := os.Open("../data/lab_3_var_12.csv")
+		if err != nil {
+			fmt.Println("failed to open file:", err)
+			return &charting.RenderResponse{
+				Error: render.NewRenderError("failed to read sample data file"),
+			}
+		}
+		defer f.Close()
+
+		d := uncsv.NewDecoder(f)
+		d.Comma = ','
+		points = &Points{}
+		if err := d.Decode(points); err != nil {
+			fmt.Println("failed to decode csv:", err)
+			return &charting.RenderResponse{
+				Error: render.NewRenderError("failed to decode sample data file"),
+			}
 		}
 	}
 
-	maxDegree := min(len(x)-1, 45)
+	maxDegree := min(len(points.X)-1, 45)
 	degrees := make([]float64, 0, maxDegree)
 	errs := make([]float64, 0, maxDegree)
 
 	for degree := range maxDegree - 1 {
 		degree += 1
-		coeffs, err := SolvePolynomialFit(x, y, degree)
+		coeffs, err := SolvePolynomialFit(points.X, points.Y, degree)
 		if err != nil {
 			fmt.Println("Error:", err)
 			continue
 		}
 		degrees = append(degrees, float64(degree))
-		errs = append(errs, CalculateMSE(x, y, coeffs))
+		errs = append(errs, CalculateMSE(points.X, points.Y, coeffs))
 	}
 
 	chartCopy := charting.CopyChart(RandomMSEChart)
