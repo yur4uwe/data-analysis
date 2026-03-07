@@ -46,9 +46,9 @@ var (
 		Label:           "Sample Data",
 		BorderColor:     charting.ColorEmerald,
 		BackgroundColor: []string{"rgba(0, 0, 0, 0.1)"},
-		PointRadius:     0,
+		PointRadius:     3,
 		BorderWidth:     2,
-		ShowLine:        true,
+		ShowLine:        false,
 		Togglable:       true,
 		GraphVariables:  []charting.MutableField{},
 	}
@@ -70,7 +70,7 @@ var (
 	SampleDataChart = charting.Chart{
 		ID:          SampleDataID,
 		Title:       "Sample Data (CSV)",
-		Type:        charting.ChartTypeLine,
+		Type:        charting.ChartTypeScatter,
 		XAxisLabel:  "X",
 		YAxisLabel:  "Y",
 		XAxisConfig: charting.LinearAxis,
@@ -146,11 +146,13 @@ func RenderSampleData(req *charting.RenderRequest) *charting.RenderResponse {
 	step := (maxX - minX) / float64(len(points.X)-1)
 
 	approx := make([]float64, 0, len(points.X))
+	appeoxX := make([]float64, 0, len(points.X))
 	for i := minX; i < maxX; i += step {
 		approx = append(approx, EvaluatePolynomial(coeffs, i))
+		appeoxX = append(appeoxX, i)
 	}
 
-	chartCopy.UpdatePointsForDataset(sampleApproximationGraphID, points.X, approx)
+	chartCopy.UpdatePointsForDataset(sampleApproximationGraphID, appeoxX, approx)
 
 	var str strings.Builder
 	str.WriteString("Polynomial Coefficients (")

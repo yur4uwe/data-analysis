@@ -15,6 +15,94 @@ if (!window.chartInstances) {
   window.chartInstances = new Map();
 }
 
+function getDatalabels(chartType: keyof ChartTypeRegistry) {
+  switch (chartType) {
+    case "pie":
+    case "doughnut":
+      return {
+        color: "#ffffff",
+        font: { weight: "bold" as const, size: 14 },
+        formatter: (value: number, ctx: any) => {
+          const total = (ctx.dataset.data as number[]).reduce(
+            (a, b) => a + b,
+            0,
+          );
+          const pct = ((value / total) * 100).toFixed(1);
+          return `${value}\n(${pct}%)`;
+        },
+      };
+    case "bar":
+      return {
+        color: "#ffffff",
+        font: { weight: "bold" as const, size: 14 },
+      };
+    default:
+      return { display: false };
+  }
+}
+
+function newScales(chartConfig: charting.Chart, hasContinuousAxes: boolean) {
+  return {
+    x: {
+      ...(hasContinuousAxes && { type: "linear" as const }),
+      border: {
+        display: !hasContinuousAxes,
+      },
+      title: {
+        display: !!chartConfig.xAxisLabel,
+        text: chartConfig.xAxisLabel,
+        color: "#000000",
+        font: {
+          size: 14,
+          weight: "bold",
+        },
+      },
+      ticks: {
+        color: "#000000",
+        font: {
+          size: 12,
+        },
+      },
+      grid: {
+        color: (ctx: any) =>
+          hasContinuousAxes && ctx.tick?.value === 0
+            ? "#000000"
+            : "rgba(0,0,0,0.1)",
+        lineWidth: (ctx: any) =>
+          hasContinuousAxes && ctx.tick?.value === 0 ? 2 : 1,
+      },
+    },
+    y: {
+      border: {
+        display: !hasContinuousAxes,
+      },
+      title: {
+        display: !!chartConfig.yAxisLabel,
+        text: chartConfig.yAxisLabel,
+        color: "#000000",
+        font: {
+          size: 14,
+          weight: "bold",
+        },
+      },
+      ticks: {
+        color: "#000000",
+        font: {
+          size: 12,
+        },
+      },
+      grid: {
+        color: (ctx: any) =>
+          hasContinuousAxes && ctx.tick?.value === 0
+            ? "#000000"
+            : "rgba(0,0,0,0.1)",
+        lineWidth: (ctx: any) =>
+          hasContinuousAxes && ctx.tick?.value === 0 ? 2 : 1,
+      },
+    },
+  };
+}
+
 export function renderChart(chartConfig: charting.Chart) {
   let container = document.getElementById("chart-container");
   if (!container) {
@@ -52,7 +140,8 @@ export function renderChart(chartConfig: charting.Chart) {
   const hasScales = !["pie", "doughnut", "polarArea"].includes(chartType);
   const hasContinuousAxes = ["scatter", "line", "bubble"].includes(chartType);
 
-  const labels: string[] = hasContinuousAxes ? [] : (chartConfig.labels ?? []);
+  const labels: string[] = chartConfig.labels ?? [];
+  console.log(`labels: ${labels},\n original array: ${chartConfig.labels}`);
 
   // Process datasets based on chart type
   const processedDatasets = Object.values(chartConfig.datasets).map(
@@ -73,31 +162,11 @@ export function renderChart(chartConfig: charting.Chart) {
         data = [];
       }
 
-      // For pie/doughnut charts, generate color palette if not specified
-      let backgroundColor = dataset.backgroundColor;
-      if (!hasScales && !backgroundColor && Array.isArray(data)) {
-        const colors = [
-          "#FF6384",
-          "#36A2EB",
-          "#FFCE56",
-          "#4BC0C0",
-          "#9966FF",
-          "#FF9F40",
-          "#FF6384",
-          "#C9CBCF",
-          "#4BC0C0",
-          "#FF6384",
-        ];
-        backgroundColor = data.map(
-          (_: any, idx: number) => colors[idx % colors.length],
-        );
-      }
-
       return {
         label: dataset.label,
         data: data,
-        borderColor: dataset.borderColor ?? "#666",
-        backgroundColor: backgroundColor ?? "transparent",
+        borderColor: dataset.borderColor,
+        backgroundColor: dataset.backgroundColor ?? dataset.borderColor,
         tension: dataset.tension ?? 0,
         fill: dataset.fill ?? false,
         hidden: dataset.hidden ?? false,
@@ -134,21 +203,7 @@ export function renderChart(chartConfig: charting.Chart) {
           usePointStyle: true,
         },
       },
-      datalabels:
-        chartType === "pie"
-          ? {
-              color: "#ffffff",
-              font: { weight: "bold" as const, size: 14 },
-              formatter: (value: number, ctx: any) => {
-                const total = (ctx.dataset.data as number[]).reduce(
-                  (a, b) => a + b,
-                  0,
-                );
-                const pct = ((value / total) * 100).toFixed(1);
-                return `${value}\n(${pct}%)`;
-              },
-            }
-          : { display: false },
+      datalabels: getDatalabels(chartType),
       tooltip: {
         backgroundColor: "rgba(0, 0, 0, 0.9)",
         titleColor: "#ffffff",
@@ -161,70 +216,9 @@ export function renderChart(chartConfig: charting.Chart) {
     },
   };
 
-  console.log(ctx);
-
   // Only add scales for charts that use them
   if (hasScales) {
-    chartOptions.scales = {
-      x: {
-        type: hasContinuousAxes ? ("linear" as const) : undefined,
-        border: {
-          display: !hasContinuousAxes,
-        },
-        title: {
-          display: !!chartConfig.xAxisLabel,
-          text: chartConfig.xAxisLabel,
-          color: "#000000",
-          font: {
-            size: 14,
-            weight: "bold",
-          },
-        },
-        ticks: {
-          color: "#000000",
-          font: {
-            size: 12,
-          },
-        },
-        grid: {
-          color: (ctx: any) =>
-            hasContinuousAxes && ctx.tick?.value === 0
-              ? "#000000"
-              : "rgba(0,0,0,0.1)",
-          lineWidth: (ctx: any) =>
-            hasContinuousAxes && ctx.tick?.value === 0 ? 2 : 1,
-        },
-      },
-      y: {
-        border: {
-          display: !hasContinuousAxes,
-        },
-        title: {
-          display: !!chartConfig.yAxisLabel,
-          text: chartConfig.yAxisLabel,
-          color: "#000000",
-          font: {
-            size: 14,
-            weight: "bold",
-          },
-        },
-        ticks: {
-          color: "#000000",
-          font: {
-            size: 12,
-          },
-        },
-        ...(hasContinuousAxes && { suggestedMin: 0, suggestedMax: 0 }),
-        grid: {
-          color: (ctx: any) =>
-            hasContinuousAxes && ctx.tick?.value === 0
-              ? "#000000"
-              : "rgba(0,0,0,0.1)",
-          lineWidth: (ctx: any) =>
-            hasContinuousAxes && ctx.tick?.value === 0 ? 2 : 1,
-        },
-      },
-    };
+    chartOptions.scales = newScales(chartConfig, hasContinuousAxes);
   }
 
   const chart = new Chart(ctx, {
@@ -236,7 +230,6 @@ export function renderChart(chartConfig: charting.Chart) {
     options: chartOptions,
   });
 
-  // Store chart instance for later access
   window.chartInstances.set(chartConfig.id, chart);
 }
 

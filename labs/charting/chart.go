@@ -2,6 +2,7 @@ package charting
 
 import (
 	"errors"
+	"fmt"
 )
 
 // ==================== CHART CONFIGURATION ====================
