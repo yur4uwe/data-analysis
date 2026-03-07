@@ -1,7 +1,8 @@
 {
-  "$schema": "https://wails.io/schemas/config.v2.json",
+  "$schema": "https://raw.githubusercontent.com/wailsapp/wails/refs/heads/master/website/static/schemas/config.v2.json",
   "name": "labs",
   "outputfilename": "labs",
+  "build:tags": "webkit2_41",
   "frontend:install": "npm install",
   "frontend:build": "npm run build",
   "frontend:dev:watcher": "npm run dev",
