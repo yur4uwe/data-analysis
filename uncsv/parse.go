@@ -2,6 +2,7 @@ package uncsv
 
 import (
 	"encoding/csv"
+	"errors"
 	"fmt"
 	"io"
 	"reflect"
@@ -37,6 +38,66 @@ type Encoder struct {
 	w io.Writer
 }
 
+func decodeStructOfArrays(v any, colname_to_field map[string]int, r *csv.Reader) error {
+	destT := reflect.TypeOf(v) // ignore possible nil as it was already parsed successfully once
+	destV := reflect.ValueOf(v)
+
+	if destT.Kind() == reflect.Pointer {
+		destT = destT.Elem()
+		destV = destV.Elem()
+	}
+
+	for rowIdx := 0; ; rowIdx++ {
+		row, err := r.Read()
+		if err == io.EOF {
+			break
+		} else if err != nil {
+			return fmt.Errorf("row parsing error: %w", err)
+		}
+
+		for i := range destT.NumField() {
+			fieldT := destT.Field(i)
+
+			fieldKind := fieldT.Type.Kind()
+			if fieldKind != reflect.Slice && fieldKind != reflect.Array {
+				return fmt.Errorf("expected fields to be arrays|slices got %s", fieldT.Type.Kind())
+			}
+
+			fieldV := destV.Field(i)
+			if fieldV.Kind() == reflect.Slice && fieldV.Cap() == 0 {
+				fieldV.Set(reflect.MakeSlice(fieldV.Type(), 0, 128))
+			}
+
+			tag := fieldT.Tag.Get("csv")
+			if tag == "" {
+				continue
+			}
+
+			colIdx, ok := colname_to_field[tag]
+			if !ok {
+				return fmt.Errorf("field %s: column %s not found in CSV header", fieldT.Name, tag)
+			}
+
+			elemType := fieldT.Type.Elem()
+			// Optimistic that type has DecodeCSV()
+			val, err := parseElement(row[colIdx], elemType)
+			if err != nil {
+				return fmt.Errorf("at field %s, colIdx %d: element parsing error: %w", fieldT.Name, colIdx, err)
+			}
+
+			if err := setValueAtIndex(fieldV, rowIdx, val); err != nil {
+				return fmt.Errorf("failed to set field: %w", err)
+			}
+		}
+	}
+
+	return nil
+}
+
+func decodeArrayOfStructs(v any, colname_to_field map[string]int, r *csv.Reader) error {
+	return errors.New("not implemented")
+}
+
 // Assumes struct of arrays
 func (p *Decoder) Decode(v any) error {
 	csvReader := csv.NewReader(p.r)
@@ -55,20 +116,30 @@ func (p *Decoder) Decode(v any) error {
 		header[0] = strings.TrimPrefix(header[0], "\uFEFF")
 	}
 
+	columnNameToField := make(map[string]int)
+	for i, name := range header {
+		columnNameToField[name] = i
+	}
+
 	destT := reflect.TypeOf(v)
 	if destT == nil {
 		return fmt.Errorf("cannot decode nil")
 	}
+
+	// both decide only outermost shell
+	if destT.Kind() == reflect.Slice || destT.Kind() == reflect.Array {
+		return decodeArrayOfStructs(v, columnNameToField, csvReader)
+	} else if destT.Kind() == reflect.Struct || (destT.Kind() == reflect.Pointer && destT.Elem().Kind() == reflect.Struct) {
+		return decodeStructOfArrays(v, columnNameToField, csvReader)
+	} else {
+		return fmt.Errorf("well, you can put any, BUT HOW DO YOU EXPECT TO FIT CSV IN %s", destT.String())
+	}
+
 	if destT.Kind() != reflect.Pointer || destT.Elem().Kind() != reflect.Struct {
 		return fmt.Errorf("type mismatch, expected pointer to struct of slices|arrays got: %s", destT.Kind())
 	}
 	destT = destT.Elem()
 	destV := reflect.ValueOf(v).Elem()
-
-	columnNameToField := make(map[string]int)
-	for i, name := range header {
-		columnNameToField[name] = i
-	}
 
 	for rowIdx := 0; ; rowIdx++ {
 		row, err := csvReader.Read()
@@ -185,7 +256,65 @@ func (p *Decoder) Decode(v any) error {
 }
 
 func (p *Encoder) Encode(v any) error {
-	return nil
+	return errors.New("not immplemented")
+}
+
+func parseElement(strval string, elemType reflect.Type) (any, error) {
+	if reflect.PointerTo(elemType).Implements(reflect.TypeFor[FieldDecoder]()) {
+		newElem := reflect.New(elemType)
+		if decoder, ok := newElem.Interface().(FieldDecoder); ok {
+			if err := decoder.DecodeCSV(strval); err != nil {
+				return nil, fmt.Errorf("custom decode failed: %w", err)
+			}
+
+			return newElem.Elem().Interface(), nil
+		}
+	}
+	elemKind := elemType.Kind()
+
+	elemKindSizeBits := getBitSizeFromKind(elemKind)
+	switch elemKind {
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+		intVal, err := strconv.ParseInt(strval, 0, elemKindSizeBits)
+		if err != nil {
+			return nil, fmt.Errorf(
+				"failed to parse value %s as %d-bit integer: %w",
+				strval, elemKindSizeBits, err,
+			)
+		}
+		return intVal, nil
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+		uintVal, err := strconv.ParseUint(strval, 0, elemKindSizeBits)
+		if err != nil {
+			return nil, fmt.Errorf(
+				"failed to parse value %s as %d-bit unsigned integer: %w",
+				strval, elemKindSizeBits, err,
+			)
+		}
+		return uintVal, nil
+	case reflect.Bool:
+		boolVal, err := strconv.ParseBool(strval)
+		if err != nil {
+			return nil, fmt.Errorf(
+				"failed to parse value %s as a boolean: %w",
+				strval, err,
+			)
+		}
+		return boolVal, nil
+	case reflect.Float32, reflect.Float64:
+		floatVal, err := strconv.ParseFloat(strval, elemKindSizeBits)
+		if err != nil {
+			return nil, fmt.Errorf(
+				"failed to parse value %s as float%d: %w",
+				strval, elemKindSizeBits, err,
+			)
+		}
+		return floatVal, nil
+	case reflect.String:
+		return strval, nil
+	default:
+		return nil, fmt.Errorf("expected kind of element to be of simple type")
+	}
 }
 
 // Rename and return bits directly
