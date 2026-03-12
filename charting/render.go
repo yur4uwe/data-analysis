@@ -3,6 +3,7 @@ package charting
 import (
 	"labs/labs/render"
 	"strings"
+	"time"
 )
 
 // RenderRequest is sent from frontend when user requests new data
@@ -36,10 +37,23 @@ func (rr *RenderRequest) GetGraphVariable(chartId string, graphId string, variab
 	return 0, false
 }
 
+type CachePolicy int
+
+const (
+	CachePolicyNone CachePolicy = iota
+	CachePolicyDontCache
+	CachePolicyCacheOnly
+	CachePolicyWithExpiration
+)
+
 // RenderResponse contains the updated chart data
 type RenderResponse struct {
 	Charts map[string]Chart `json:"charts"`
 	Error  error            `json:"error,omitempty"`
+	// backend only fields for caching should not be sent to frontend
+	CachePolicy  CachePolicy `json:"-"`
+	CachedAt     int32       `json:"-"`
+	ExpirationMS int32       `json:"-"`
 }
 
 func NewRenderResponse() *RenderResponse {
@@ -69,4 +83,12 @@ func (rr *RenderResponse) NewError(message string) *RenderResponse {
 	}
 	rr.Error = render.NewRenderError(message)
 	return rr
+}
+
+func (rr *RenderResponse) IsExpired() bool {
+	if rr.CachePolicy != CachePolicyWithExpiration {
+		return false
+	}
+	currentTime := time.Now().UnixMilli()
+	return currentTime > int64(rr.CachedAt)+int64(rr.ExpirationMS)
 }

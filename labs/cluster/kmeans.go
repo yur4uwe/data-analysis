@@ -68,8 +68,6 @@ func RenderKmeans(req *charting.RenderRequest) (res *charting.RenderResponse) {
 		num_centroids = VariableNumCentroids.Default
 	}
 
-	fmt.Printf("Num of centroids: %d, option: %f\n", int(num_centroids), option)
-
 	if num_centroids < 1 {
 		return res.NewErrorf("number of centroids too small")
 	}
@@ -98,6 +96,9 @@ func RenderKmeans(req *charting.RenderRequest) (res *charting.RenderResponse) {
 	clusterData(labels, len(centroids), &copyChart)
 
 	res = charting.NewRenderResponse()
+	if int(option) == 2 { // dont cache random centroids, as they should be different on each render
+		res.CachePolicy = charting.CachePolicyDontCache
+	}
 	res.AddChart(copyChart.ID, &copyChart)
 
 	return res

@@ -34,14 +34,14 @@ func (rc *ResponseCache) GetResponse(req *charting.RenderRequest) (*charting.Ren
 		return nil, false
 	}
 	key := rc.generateCacheKey(req)
-	if res, ok := rc.outcoming[key]; ok {
+	if res, ok := rc.outcoming[key]; ok && !res.IsExpired() {
 		return res, true
 	}
 	return nil, false
 }
 
 func (rc *ResponseCache) StoreResponse(req *charting.RenderRequest, res *charting.RenderResponse) {
-	if req == nil || res == nil {
+	if req == nil || res == nil || res.CachePolicy == charting.CachePolicyDontCache {
 		return
 	}
 	key := rc.generateCacheKey(req)

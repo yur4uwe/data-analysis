@@ -15,9 +15,6 @@ import (
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
 
-// LabFactory is a function that creates a lab provider on demand
-type LabFactory func() charting.LabProvider
-
 // App struct
 type App struct {
 	ctx      context.Context
@@ -87,7 +84,7 @@ func (a *App) Render(req *charting.RenderRequest) {
 	go func() {
 		res := a.RenderSync(req)
 
-		a.cache.StoreResponse(req, &res)
+		a.cache.StoreResponse(req, res)
 
 		if render.IsRenderError(res.Error) {
 			runtime.EventsEmit(a.ctx, "renderError", res)
@@ -99,22 +96,16 @@ func (a *App) Render(req *charting.RenderRequest) {
 
 // RenderSync renders synchronously and returns the response directly
 // This ensures RenderResponse is exported to TypeScript
-func (a *App) RenderSync(req *charting.RenderRequest) charting.RenderResponse {
+func (a *App) RenderSync(req *charting.RenderRequest) (res *charting.RenderResponse) {
 	provider, ok := a.registry[req.LabID]
 	if !ok {
-		return charting.RenderResponse{
-			Error: render.NewRenderError(fmt.Sprintf("lab %q not found", req.LabID)),
-		}
+		return res.NewErrorf("lab %q not found", req.LabID)
 	}
 
-	result := provider.Render(req)
-	if result.Error != nil {
-		return charting.RenderResponse{
-			Error: render.NewRenderError(fmt.Sprintf("failed to render lab %q: %v", req.LabID, result.Error)),
-		}
+	res = provider.Render(req)
+	if res.Error != nil {
+		return res.NewErrorf("failed to render lab %q: %v", req.LabID, res.Error)
 	}
 
-	return charting.RenderResponse{
-		Charts: result.Charts,
-	}
+	return res
 }
