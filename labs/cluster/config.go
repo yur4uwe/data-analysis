@@ -46,9 +46,9 @@ func loadPoints() error {
 	return nil
 }
 
-func clusterData(labels []int, num_centroids int, chart *charting.Chart) {
+func clusterData(labels []int, centroids []charting.DataPoint, chart *charting.Chart) {
 	colors := [...]string{charting.ColorAmber, charting.ColorBlue, charting.ColorCyan, charting.ColorEmerald, charting.ColorLightPurple}
-	for cluster := range num_centroids {
+	for cluster := range len(centroids) {
 		cluster_points := make([]charting.DataPoint, 0)
 		for i := range points {
 			if labels[i] == cluster {
@@ -65,6 +65,21 @@ func clusterData(labels []int, num_centroids int, chart *charting.Chart) {
 			BorderWidth:     2,
 			PointData:       cluster_points,
 		}
+	}
+
+	centroidLabels := make([]string, len(centroids))
+	for i := range centroids {
+		centroidLabels[i] = fmt.Sprintf("Cluster %d", i)
+	}
+	chart.Datasets["centroids"] = &charting.ChartDataset{
+		Label:           "Centroids",
+		BorderColor:     "#000000",
+		BackgroundColor: []string{"#ffffff"},
+		PointRadius:     12,
+		BorderWidth:     3,
+		PointStyle:      "star",
+		PointData:       centroids,
+		PointLabels:     centroidLabels,
 	}
 }
 

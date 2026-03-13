@@ -41,6 +41,8 @@ type ChartDataset struct {
 	BorderWidth     int            `json:"borderWidth,omitempty"`
 	ShowLine        bool           `json:"showLine,omitempty"`
 	Togglable       bool           `json:"togglable,omitempty"` // Can user toggle visibility?
+	PointStyle      string         `json:"pointStyle,omitempty"`
+	PointLabels     []string       `json:"pointLabels,omitempty"` // Per-point labels shown via datalabels plugin
 }
 
 func (cd *ChartDataset) UpdatePoints(x, y []float64) error {

@@ -93,7 +93,7 @@ func RenderKmeans(req *charting.RenderRequest) (res *charting.RenderResponse) {
 
 	copyChart := charting.CopyChart(KmeansChart)
 
-	clusterData(labels, len(centroids), &copyChart)
+	clusterData(labels, centroids, &copyChart)
 
 	res = charting.NewRenderResponse()
 	if int(option) == 2 { // dont cache random centroids, as they should be different on each render
@@ -106,7 +106,8 @@ func RenderKmeans(req *charting.RenderRequest) (res *charting.RenderResponse) {
 
 func kmeans(points []charting.DataPoint, centroids []charting.DataPoint, maxIter uint32) ([]int, []charting.DataPoint, error) {
 	var labels []int
-	for i := range maxIter {
+	var i uint32
+	for i = range maxIter {
 		labels = assignPointsToCentroids(points, centroids)
 		newCentroids := updateCentroids(points, labels, uint32(len(centroids)))
 
@@ -118,6 +119,7 @@ func kmeans(points []charting.DataPoint, centroids []charting.DataPoint, maxIter
 			return nil, nil, errors.New("k-means: centroids haven't coverged")
 		}
 	}
+	fmt.Printf("Completed in %d iterations", i)
 
 	return labels, centroids, nil
 }
@@ -137,17 +139,17 @@ func assignPointsToCentroids(points []charting.DataPoint, centroids []charting.D
 }
 
 func updateCentroids(points []charting.DataPoint, labels []int, k uint32) []charting.DataPoint {
-	sums := make([]charting.DataPoint, k)
-	counts := make([]int, k)
+	cluster_points_sums := make([]charting.DataPoint, k)
+	count_of_points_in_each_centroid := make([]int, k)
 	for i, p := range points {
-		sums[labels[i]].X += p.X
-		sums[labels[i]].Y += p.Y
-		counts[labels[i]]++
+		cluster_points_sums[labels[i]].X += p.X
+		cluster_points_sums[labels[i]].Y += p.Y
+		count_of_points_in_each_centroid[labels[i]]++
 	}
 	centroids := make([]charting.DataPoint, k)
 	for i := range centroids {
-		if counts[i] > 0 {
-			centroids[i] = charting.DataPoint{X: sums[i].X / float64(counts[i]), Y: sums[i].Y / float64(counts[i])}
+		if count_of_points_in_each_centroid[i] > 0 {
+			centroids[i] = charting.DataPoint{X: cluster_points_sums[i].X / float64(count_of_points_in_each_centroid[i]), Y: cluster_points_sums[i].Y / float64(count_of_points_in_each_centroid[i])}
 		}
 	}
 	return centroids

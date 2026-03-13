@@ -1,8 +1,9 @@
-import { Chart, ChartTypeRegistry } from "chart.js";
+import { Chart, ChartTypeRegistry, ScaleChartOptions } from "chart.js";
 import ChartDataLabels from "chartjs-plugin-datalabels";
+import ZoomPlugin from "chartjs-plugin-zoom";
 import { charting } from "../wailsjs/go/models";
 
-Chart.register(ChartDataLabels);
+Chart.register(ChartDataLabels, ZoomPlugin);
 
 // Store chart instances globally for access
 declare global {
@@ -15,10 +16,28 @@ if (!window.chartInstances) {
   window.chartInstances = new Map();
 }
 
-function getDatalabels(chartType: keyof ChartTypeRegistry) {
+function getDataLabels(
+  pointLabels: string[] | undefined,
+  chartType: keyof ChartTypeRegistry,
+) {
+  if (pointLabels?.length) {
+    return {
+      display: true,
+      formatter: (_: any, ctx: any) => pointLabels[ctx.dataIndex],
+      anchor: "end" as const,
+      align: "top" as const,
+      color: "#000000",
+      font: { weight: "bold" as const, size: 11 },
+      backgroundColor: "rgba(255,255,255,0.85)",
+      borderRadius: 3,
+      padding: 4,
+    };
+  }
   switch (chartType) {
     case "pie":
+      console.log(`returning labels for pie`);
     case "doughnut":
+      console.log(`returning labels for doughnut`);
       return {
         color: "#ffffff",
         font: { weight: "bold" as const, size: 14 },
@@ -31,13 +50,18 @@ function getDatalabels(chartType: keyof ChartTypeRegistry) {
           return `${value}\n(${pct}%)`;
         },
       };
+
     case "bar":
+      console.log(`returning labels for bar`);
       return {
         color: "#ffffff",
         font: { weight: "bold" as const, size: 14 },
       };
     default:
-      return { display: false };
+      console.log(`returning labels for default`);
+      return {
+        display: false,
+      };
   }
 }
 
@@ -119,14 +143,10 @@ export function renderChart(chartConfig: charting.Chart) {
     return;
   }
 
-  const canvasWrapper = document.createElement("div");
-  canvasWrapper.className = "chart-wrapper";
-
   const canvas = document.createElement("canvas");
   canvas.id = `chart-${chartConfig.id}`;
 
-  canvasWrapper.appendChild(canvas);
-  container.appendChild(canvasWrapper);
+  container.appendChild(canvas);
 
   const ctx = canvas.getContext("2d");
   if (!ctx) {
@@ -141,7 +161,6 @@ export function renderChart(chartConfig: charting.Chart) {
   const hasContinuousAxes = ["scatter", "line", "bubble"].includes(chartType);
 
   const labels: string[] = chartConfig.labels ?? [];
-  console.log(`labels: ${labels},\n original array: ${chartConfig.labels}`);
 
   // Process datasets based on chart type
   const processedDatasets = Object.values(chartConfig.datasets).map(
@@ -173,12 +192,16 @@ export function renderChart(chartConfig: charting.Chart) {
         pointRadius: dataset.pointRadius ?? 0,
         borderWidth: dataset.borderWidth ?? 2,
         showLine: dataset.showLine === true,
+        pointStyle: dataset.pointStyle ?? undefined,
+        datalabels: getDataLabels(dataset.pointLabels, chartType),
       };
     },
   );
 
   const chartOptions: any = {
     responsive: true,
+    resizeDelay: 100,
+    animation: false,
     plugins: {
       title: {
         display: true,
@@ -203,7 +226,7 @@ export function renderChart(chartConfig: charting.Chart) {
           usePointStyle: true,
         },
       },
-      datalabels: getDatalabels(chartType),
+      datalabels: getDataLabels(undefined, chartType),
       tooltip: {
         backgroundColor: "rgba(0, 0, 0, 0.9)",
         titleColor: "#ffffff",
@@ -213,12 +236,30 @@ export function renderChart(chartConfig: charting.Chart) {
         padding: 12,
         displayColors: true,
       },
+      zoom: {
+        zoom: {
+          wheel: {
+            enabled: true,
+            speed: 0.02,
+            modifierKey: "ctrl",
+          },
+          pinch: { enabled: true },
+          mode: "xy",
+        },
+        pan: {
+          enabled: true,
+          mode: "xy",
+        },
+      },
     },
   };
 
   // Only add scales for charts that use them
   if (hasScales) {
-    chartOptions.scales = newScales(chartConfig, hasContinuousAxes);
+    chartOptions.scales = newScales(
+      chartConfig,
+      hasContinuousAxes,
+    ) as unknown as ScaleChartOptions;
   }
 
   const chart = new Chart(ctx, {
@@ -231,6 +272,16 @@ export function renderChart(chartConfig: charting.Chart) {
   });
 
   window.chartInstances.set(chartConfig.id, chart);
+
+  const resetZoom = document.getElementById("reset-zoom-btn");
+  if (!resetZoom) {
+    return;
+  }
+  const resetZoomCallback = () => {
+    (window.chartInstances.get(chartConfig.id) as any).resetZoom();
+  };
+  resetZoom.removeEventListener("click", resetZoomCallback);
+  resetZoom.addEventListener("click", resetZoomCallback);
 }
 
 // Helper functions for dataset control

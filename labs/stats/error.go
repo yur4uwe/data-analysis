@@ -2,7 +2,6 @@ package stats
 
 import (
 	"labs/charting"
-	"math"
 )
 
 const (
@@ -121,14 +120,14 @@ func RenderError(req *charting.RenderRequest) (res *charting.RenderResponse) {
 	stddev_errors := make([]float64, 0, n)
 
 	for i := 1; i <= 100; i++ {
-		sample := GenerateNormalSamples(theoretical_mean, theoretical_stddev, int(i))
+		sample := GenerateNormalSamples(theoretical_mean, theoretical_stddev, int(i)*n)
 
 		actual_mean := CalculateMean(sample)
 		actual_stddev := CalculateStdDev(sample, actual_mean)
 
 		x = append(x, float64(i*n))
-		mean_errors = append(mean_errors, math.Abs(actual_mean-theoretical_mean))
-		stddev_errors = append(stddev_errors, math.Abs(actual_stddev-theoretical_stddev))
+		mean_errors = append(mean_errors, (actual_mean - theoretical_mean))
+		stddev_errors = append(stddev_errors, (actual_stddev - theoretical_stddev))
 	}
 
 	copyChart := charting.CopyChart(CorrelationChart)

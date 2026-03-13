@@ -2,6 +2,7 @@ package cluster
 
 import (
 	"labs/charting"
+	"math/rand"
 )
 
 const (
@@ -21,6 +22,18 @@ var (
 		Control: charting.ControlNumber,
 	}
 
+	VariableChoiseOption = charting.MutableField{
+		ID:      VariableCenroidsChoiseOptionID,
+		Label:   "What points should be selected as 1st centroid",
+		Control: charting.ControlSelect,
+		Default: 0,
+		Options: []string{
+			"first point",
+			"last point",
+			"random point",
+		},
+	}
+
 	SimpleChart = charting.Chart{
 		ID:          SimpleChartID,
 		Title:       "Simple Clusterization",
@@ -31,6 +44,7 @@ var (
 		YAxisConfig: charting.LinearAxis,
 		ChartVariables: []charting.MutableField{
 			VariableThreshold,
+			VariableChoiseOption,
 		},
 	}
 )
@@ -44,29 +58,45 @@ func RenderSimple(req *charting.RenderRequest) (res *charting.RenderResponse) {
 	if !ok {
 		threshold = VariableThreshold.Default
 	}
+	option, ok := req.GetChartVariable(SimpleChartID, VariableCenroidsChoiseOptionID)
+	if !ok {
+		option = VariableChoiseOption.Default
+	}
 
 	copyChart := charting.CopyChart(SimpleChart)
 
-	labels, centroids := simpleClustering(points, threshold)
+	var initCentroid charting.DataPoint
+	switch int(option) {
+	case 0: // first point
+		initCentroid = points[0]
+	case 1: // last point
+		initCentroid = points[len(points)-1]
+	case 2: // random point
+		initCentroid = points[rand.Intn(len(points))]
+	default:
+		return res.NewErrorf("unrecognized option index: %.0f", option)
+	}
 
-	clusterData(labels, len(centroids), &copyChart)
+	labels, centroids := simpleClustering(points, initCentroid, threshold)
+
+	clusterData(labels, centroids, &copyChart)
 
 	res = charting.NewRenderResponse()
 	res.AddChart(copyChart.ID, &copyChart)
+	if int(option) == 2 { // dont cache random centroids, as they should be different on each render
+		res.CachePolicy = charting.CachePolicyDontCache
+	}
 
 	return res
 }
 
-// simpleClustering assigns each point to the nearest existing cluster center,
-// or creates a new cluster if all distances exceed the threshold T.
-// Returns cluster labels (one per point) and the final cluster centers.
-func simpleClustering(points []charting.DataPoint, T float64) (labels []int, centroids []charting.DataPoint) {
+func simpleClustering(points []charting.DataPoint, initCentroid charting.DataPoint, T float64) (labels []int, centroids []charting.DataPoint) {
 	if len(points) == 0 {
 		return nil, nil
 	}
 
 	labels = make([]int, len(points))
-	centroids = []charting.DataPoint{points[0]}
+	centroids = []charting.DataPoint{initCentroid}
 
 	for i, p := range points[1:] {
 		best, minDist := 0, euclidianDist(p, centroids[0])

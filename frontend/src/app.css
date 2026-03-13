@@ -59,7 +59,7 @@
     background-color: #f0f2f5;
 }
 
-.chart-wrapper {
+.chart-container {
     background-color: #ffffff;
     border-radius: 8px;
     padding: 20px;
@@ -67,7 +67,7 @@
     border: 1px solid #d0d7e0;
 }
 
-.chart-wrapper canvas {
+.chart-container canvas {
     max-width: 100%;
     height: auto;
 }
