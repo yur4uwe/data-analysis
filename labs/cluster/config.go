@@ -47,7 +47,19 @@ func loadPoints() error {
 }
 
 func clusterData(labels []int, centroids []charting.DataPoint, chart *charting.Chart) {
-	colors := [...]string{charting.ColorAmber, charting.ColorBlue, charting.ColorCyan, charting.ColorEmerald, charting.ColorLightPurple}
+	colors := [...]string{
+		charting.ColorAmber,
+		charting.ColorBlue,
+		charting.ColorCyan,
+		charting.ColorEmerald,
+		charting.ColorLightPurple,
+		charting.ColorIndigo,
+		charting.ColorCrimson,
+		charting.ColorYellow,
+		charting.ColorLime,
+		charting.ColorPink,
+		charting.ColorFuchsia,
+	}
 	for cluster := range len(centroids) {
 		cluster_points := make([]charting.DataPoint, 0)
 		for i := range points {
