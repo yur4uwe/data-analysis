@@ -285,3 +285,22 @@ button.success {
 button.success:hover {
     background-color: #45a049;
 }
+
+#chart-container {
+    width: calc(100% - 10px);
+    margin: 10px 5px;
+    min-height: 500px;
+    background-color: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius);
+    padding: 20px;
+    box-sizing: border-box;
+    display: block;
+    position: relative;
+}
+
+#chart-container canvas {
+    display: block;
+    min-height: 400px;
+    width: 100%;
+}

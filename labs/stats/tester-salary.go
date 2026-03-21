@@ -94,7 +94,7 @@ func RenderTesterSalary(req *charting.RenderRequest) (res *charting.RenderRespon
 	}
 
 	copyChart := charting.CopyChart(TesterSalaryChart)
-	copyChart.UpdateDataForDataset(TesterSalaryBarGraphID, buckets)
+	copyChart.UpdateDataForDataset(TesterSalaryBarGraphID, charting.ToAnySlice(buckets))
 
 	copyChart.Labels = make([]string, len(buckets))
 	for i := range buckets {

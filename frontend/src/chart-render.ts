@@ -2,6 +2,7 @@ import { Chart, ChartTypeRegistry, ScaleChartOptions } from "chart.js";
 import ChartDataLabels from "chartjs-plugin-datalabels";
 import ZoomPlugin from "chartjs-plugin-zoom";
 import { charting } from "../wailsjs/go/models";
+import { defaultChartOptions, newScales, processDataset } from "./static-config";
 
 Chart.register(ChartDataLabels, ZoomPlugin);
 
@@ -16,14 +17,17 @@ if (!window.chartInstances) {
   window.chartInstances = new Map();
 }
 
-function getDataLabels(
+export function getDataLabels(
   pointLabels: string[] | undefined,
   chartType: keyof ChartTypeRegistry,
 ) {
-  if (pointLabels?.length) {
+  if (Array.isArray(pointLabels) && pointLabels.length > 0) {
     return {
       display: true,
-      formatter: (_: any, ctx: any) => pointLabels[ctx.dataIndex],
+      formatter: (_: any, ctx: any) => {
+        if (!pointLabels || ctx.dataIndex >= pointLabels.length) return "";
+        return pointLabels[ctx.dataIndex] ?? "";
+      },
       anchor: "end" as const,
       align: "top" as const,
       color: "#000000",
@@ -33,226 +37,78 @@ function getDataLabels(
       padding: 4,
     };
   }
+
   switch (chartType) {
     case "pie":
-      console.log(`returning labels for pie`);
     case "doughnut":
-      console.log(`returning labels for doughnut`);
       return {
+        display: true,
         color: "#ffffff",
         font: { weight: "bold" as const, size: 14 },
         formatter: (value: number, ctx: any) => {
-          const total = (ctx.dataset.data as number[]).reduce(
-            (a, b) => a + b,
-            0,
-          );
+          const data = ctx.dataset.data as number[];
+          if (!data || data.length === 0) return value;
+          const total = data.reduce((a, b) => a + b, 0);
+          if (total === 0) return value;
           const pct = ((value / total) * 100).toFixed(1);
           return `${value}\n(${pct}%)`;
         },
       };
 
     case "bar":
-      console.log(`returning labels for bar`);
       return {
+        display: false,
         color: "#ffffff",
         font: { weight: "bold" as const, size: 14 },
       };
     default:
-      console.log(`returning labels for default`);
       return {
         display: false,
       };
   }
 }
 
-function newScales(chartConfig: charting.Chart, hasContinuousAxes: boolean) {
-  return {
-    x: {
-      ...(hasContinuousAxes && { type: "linear" as const }),
-      border: {
-        display: !hasContinuousAxes,
-      },
-      title: {
-        display: !!chartConfig.xAxisLabel,
-        text: chartConfig.xAxisLabel,
-        color: "#000000",
-        font: {
-          size: 14,
-          weight: "bold",
-        },
-      },
-      ticks: {
-        color: "#000000",
-        font: {
-          size: 12,
-        },
-      },
-      grid: {
-        color: (ctx: any) =>
-          hasContinuousAxes && ctx.tick?.value === 0
-            ? "#000000"
-            : "rgba(0,0,0,0.1)",
-        lineWidth: (ctx: any) =>
-          hasContinuousAxes && ctx.tick?.value === 0 ? 2 : 1,
-      },
-    },
-    y: {
-      border: {
-        display: !hasContinuousAxes,
-      },
-      title: {
-        display: !!chartConfig.yAxisLabel,
-        text: chartConfig.yAxisLabel,
-        color: "#000000",
-        font: {
-          size: 14,
-          weight: "bold",
-        },
-      },
-      ticks: {
-        color: "#000000",
-        font: {
-          size: 12,
-        },
-      },
-      grid: {
-        color: (ctx: any) =>
-          hasContinuousAxes && ctx.tick?.value === 0
-            ? "#000000"
-            : "rgba(0,0,0,0.1)",
-        lineWidth: (ctx: any) =>
-          hasContinuousAxes && ctx.tick?.value === 0 ? 2 : 1,
-      },
-    },
-  };
-}
-
-export function renderChart(chartConfig: charting.Chart) {
-  let container = document.getElementById("chart-container");
-  if (!container) {
-    container = document.createElement("div");
-    container.id = "chart-container";
-    document.body.appendChild(container);
+export function renderChartInto(chartConfig: charting.Chart, container: HTMLElement) {
+  if (!chartConfig) {
+    console.error("renderChartInto: chartConfig is null or undefined!");
+    return;
   }
 
   // Clear previous content
   container.innerHTML = "";
 
-  if (!chartConfig) {
-    console.log("Charts data is null or undefined!");
-    return;
-  }
-
   const canvas = document.createElement("canvas");
   canvas.id = `chart-${chartConfig.id}`;
-
   container.appendChild(canvas);
 
   const ctx = canvas.getContext("2d");
   if (!ctx) {
-    console.log("Canvas context is null or undefined!");
+    console.error("renderChartInto: Canvas context is null!");
     return;
   }
 
-  const chartType = chartConfig.type as keyof ChartTypeRegistry;
+  const chartType = (chartConfig.type as keyof ChartTypeRegistry) || "line";
+  console.log("Rendering chart ID:", chartConfig.id, "Type:", chartType);
 
-  console.log("Chart Type:", chartType);
   const hasScales = !["pie", "doughnut", "polarArea"].includes(chartType);
   const hasContinuousAxes = ["scatter", "line", "bubble"].includes(chartType);
 
-  const labels: string[] = chartConfig.labels ?? [];
+  let chartLabels: string[] = Array.isArray(chartConfig.labels) ? chartConfig.labels : [];
 
   // Process datasets based on chart type
-  const processedDatasets = Object.values(chartConfig.datasets).map(
-    (dataset) => {
-      let data: any;
+  const processedDatasets = Object.values(chartConfig.datasets || {}).map(processDataset(hasScales, chartType));
 
-      // For pie/doughnut/polarArea charts, use simple array values
-      if (!hasScales && dataset.data) {
-        data = dataset.data;
-      }
-      // For charts with scales, use pointData y-values or data array
-      else if (dataset.pointData) {
-        data = dataset.pointData;
-      } else if (dataset.data) {
-        data = dataset.data;
-      } else {
-        console.warn(`Empty data in ${dataset.label}`);
-        data = [];
-      }
+  let maxDataLength = 0
 
-      return {
-        label: dataset.label,
-        data: data,
-        borderColor: dataset.borderColor,
-        backgroundColor: dataset.backgroundColor ?? dataset.borderColor,
-        tension: dataset.tension ?? 0,
-        fill: dataset.fill ?? false,
-        hidden: dataset.hidden ?? false,
-        pointRadius: dataset.pointRadius ?? 0,
-        borderWidth: dataset.borderWidth ?? 2,
-        showLine: dataset.showLine === true,
-        pointStyle: dataset.pointStyle ?? undefined,
-        datalabels: getDataLabels(dataset.pointLabels, chartType),
-      };
-    },
-  );
+  for (const dataset of processedDatasets) {
+    maxDataLength = Math.max(dataset.data.length, maxDataLength);
+  }
 
-  const chartOptions: any = {
-    responsive: true,
-    resizeDelay: 100,
-    animation: false,
-    plugins: {
-      title: {
-        display: true,
-        text: chartConfig.title,
-        color: "#000000",
-        font: {
-          size: 18,
-          weight: "bold",
-        },
-        padding: {
-          top: 10,
-          bottom: 20,
-        },
-      },
-      legend: {
-        labels: {
-          color: "#000000",
-          font: {
-            size: 13,
-          },
-          padding: 15,
-          usePointStyle: true,
-        },
-      },
-      datalabels: getDataLabels(undefined, chartType),
-      tooltip: {
-        backgroundColor: "rgba(0, 0, 0, 0.9)",
-        titleColor: "#ffffff",
-        bodyColor: "#ffffff",
-        borderColor: "#ffffff",
-        borderWidth: 1,
-        padding: 12,
-        displayColors: true,
-      },
-      zoom: {
-        zoom: {
-          wheel: {
-            enabled: true,
-            speed: 0.02,
-            modifierKey: "ctrl",
-          },
-          pinch: { enabled: true },
-          mode: "xy",
-        },
-        pan: {
-          enabled: true,
-          mode: "xy",
-        },
-      },
-    },
-  };
+  if (maxDataLength < chartLabels.length) {
+    chartLabels = chartLabels.slice(0, maxDataLength);
+  }
+
+  const chartOptions: any = defaultChartOptions(chartConfig.title || "");
 
   // Only add scales for charts that use them
   if (hasScales) {
@@ -262,26 +118,84 @@ export function renderChart(chartConfig: charting.Chart) {
     ) as unknown as ScaleChartOptions;
   }
 
-  const chart = new Chart(ctx, {
-    type: chartType,
-    data: {
-      labels: labels,
-      datasets: processedDatasets,
-    },
-    options: chartOptions,
-  });
+  console.log(`Initializing Chart.js for ${chartConfig.id} with ${chartLabels.length} labels`);
 
-  window.chartInstances.set(chartConfig.id, chart);
+  try {
+    const chart = new Chart(ctx, {
+      type: chartType,
+      data: {
+        labels: chartLabels,
+        datasets: processedDatasets,
+      },
+      options: chartOptions,
+    });
+    window.chartInstances.set(chartConfig.id, chart);
+  } catch (err) {
+    console.error(`Failed to initialize Chart.js for ${chartConfig.id}:`, err);
+  }
 
   const resetZoom = document.getElementById("reset-zoom-btn");
-  if (!resetZoom) {
+  if (resetZoom) {
+    const resetZoomCallback = () => {
+      const instance = window.chartInstances.get(chartConfig.id);
+      if (instance) {
+        (instance as any).resetZoom();
+      }
+    };
+    resetZoom.onclick = resetZoomCallback;
+  }
+}
+
+export function renderMultiChart(chartConfig: charting.Chart) {
+  if (!chartConfig || !chartConfig.datasets) {
+    console.error("renderMultiChart: chartConfig or datasets is missing");
     return;
   }
-  const resetZoomCallback = () => {
-    (window.chartInstances.get(chartConfig.id) as any).resetZoom();
-  };
-  resetZoom.removeEventListener("click", resetZoomCallback);
-  resetZoom.addEventListener("click", resetZoomCallback);
+
+  console.log("Rendering multiple charts for:", chartConfig.id);
+  const container = document.getElementById("chart-container")!;
+  if (!container) {
+    console.error("renderMultiChart: chart-container not found");
+    return;
+  }
+
+  container.innerHTML = "";
+  container.style.display = "grid";
+  container.style.gridTemplateColumns = "repeat(auto-fit, minmax(320px, 1fr))";
+  container.style.gap = "16px";
+
+  const singleType = (chartConfig.type || "").replace("multi-", "") as keyof ChartTypeRegistry;
+  const labels = Array.isArray(chartConfig.labels) ? chartConfig.labels : [];
+
+  Object.entries(chartConfig.datasets).forEach(([datasetId, dataset]) => {
+    if (!dataset) return;
+
+    const wrapper = document.createElement("div");
+    wrapper.className = "chart-wrapper";
+    wrapper.style.position = "relative";
+    wrapper.style.minHeight = "400px";
+    wrapper.style.height = "400px";
+    wrapper.style.width = "100%";
+    container.appendChild(wrapper);
+
+    // Each cluster should ideally have its own labels matching its data length
+    let clusterLabels = labels;
+    if (dataset.pointLabels && dataset.pointLabels.length > 0) {
+      clusterLabels = dataset.pointLabels;
+    }
+
+    // Synthetic single-dataset chart reusing all config from parent
+    const syntheticChart: charting.Chart = charting.Chart.createFrom({
+      ...chartConfig,
+      labels: clusterLabels,
+      type: singleType,
+      id: `${chartConfig.id}-${datasetId}`,
+      title: dataset.label || datasetId,
+      datasets: { [datasetId]: dataset },
+    });
+
+    renderChartInto(syntheticChart, wrapper);
+  });
 }
 
 // Helper functions for dataset control

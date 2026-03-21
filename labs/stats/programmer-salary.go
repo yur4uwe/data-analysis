@@ -92,7 +92,7 @@ func RenderProgrammerSalary(req *charting.RenderRequest) (res *charting.RenderRe
 	}
 
 	copyChart := charting.CopyChart(ProgrammerSalaryChart)
-	copyChart.UpdateDataForDataset(ProgrammerSalaryBarGraphID, buckets)
+	copyChart.UpdateDataForDataset(ProgrammerSalaryBarGraphID, charting.ToAnySlice(buckets))
 
 	copyChart.Labels = make([]string, len(buckets))
 	for i := range buckets {

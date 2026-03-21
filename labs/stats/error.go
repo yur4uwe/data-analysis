@@ -119,11 +119,12 @@ func RenderError(req *charting.RenderRequest) (res *charting.RenderResponse) {
 	mean_errors := make([]float64, 0, n)
 	stddev_errors := make([]float64, 0, n)
 
+	sample := GenerateNormalSamples(theoretical_mean, theoretical_stddev, int(max_size))
 	for i := 1; i <= 100; i++ {
-		sample := GenerateNormalSamples(theoretical_mean, theoretical_stddev, int(i)*n)
+		sliced_sample := sample[:i*n]
 
-		actual_mean := CalculateMean(sample)
-		actual_stddev := CalculateStdDev(sample, actual_mean)
+		actual_mean := CalculateMean(sliced_sample)
+		actual_stddev := CalculateStdDev(sliced_sample, actual_mean)
 
 		x = append(x, float64(i*n))
 		mean_errors = append(mean_errors, (actual_mean - theoretical_mean))

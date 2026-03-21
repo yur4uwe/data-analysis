@@ -61,7 +61,7 @@ func RenderLinear(req *charting.RenderRequest) (res *charting.RenderResponse) {
 	}
 
 	chartCopy := charting.CopyChart(LinearChart)
-	if err := chartCopy.UpdateDataForDataset(LinearGraphID, rec.Revenue); err != nil {
+	if err := chartCopy.UpdateDataForDataset(LinearGraphID, charting.ToAnySlice(rec.Revenue)); err != nil {
 		return res.NewErrorf("error while updating chart dataset: %v", err)
 	}
 

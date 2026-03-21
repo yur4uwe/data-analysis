@@ -29,7 +29,7 @@ type DataPoint struct {
 // ChartDataset represents a single line/bar/scatter set
 type ChartDataset struct {
 	Label           string         `json:"label"`
-	Data            []float64      `json:"data,omitempty"`      // For indexed data (line/bar with labels)
+	Data            []any          `json:"data,omitempty"`      // For indexed data (line/bar with labels)
 	PointData       []DataPoint    `json:"pointData,omitempty"` // For scatter/bubble charts with {x,y}
 	GraphVariables  []MutableField `json:"fields,omitempty"`
 	BorderColor     string         `json:"borderColor"`
@@ -39,8 +39,8 @@ type ChartDataset struct {
 	Hidden          bool           `json:"hidden,omitempty"`
 	PointRadius     int            `json:"pointRadius,omitempty"`
 	BorderWidth     int            `json:"borderWidth,omitempty"`
-	ShowLine        bool           `json:"showLine,omitempty"`
-	Togglable       bool           `json:"togglable,omitempty"` // Can user toggle visibility?
+	ShowLine        bool           `json:"showLine"`
+	Togglable       bool           `json:"togglable"` // Can user toggle visibility?
 	PointStyle      string         `json:"pointStyle,omitempty"`
 	PointLabels     []string       `json:"pointLabels,omitempty"` // Per-point labels shown via datalabels plugin
 }
@@ -116,12 +116,21 @@ func (c *Chart) UpdateDataPointsForDataset(datasetId string, points []DataPoint)
 	return nil
 }
 
-func (c *Chart) UpdateDataForDataset(datasetId string, data []float64) error {
+func (c *Chart) UpdateDataForDataset(datasetId string, data []any) error {
 	if _, ok := c.Datasets[datasetId]; !ok {
 		return errors.New("dataset not found in chart")
 	}
 	c.Datasets[datasetId].Data = data
 	return nil
+}
+
+// ToAnySlice converts a slice of float64 to a slice of any
+func ToAnySlice(data []float64) []any {
+	res := make([]any, len(data))
+	for i, v := range data {
+		res[i] = v
+	}
+	return res
 }
 
 // GenerateLabels derives chart Labels from the x-values of PointData across all datasets.

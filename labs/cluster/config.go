@@ -16,8 +16,9 @@ var (
 		LabID,
 		"Data Clustering",
 		map[string]*charting.Chart{
-			SimpleChartID: &SimpleChart,
-			KmeansChartID: &KmeansChart,
+			SimpleChartID:     &SimpleChart,
+			KmeansChartID:     &KmeansChart,
+			SilhouetteChartID: &SilhouetteChart,
 		},
 	)
 
@@ -60,13 +61,18 @@ func clusterData(labels []int, centroids []charting.DataPoint, chart *charting.C
 		charting.ColorPink,
 		charting.ColorFuchsia,
 	}
+
 	for cluster := range len(centroids) {
+		deviations_sum := 0.0
 		cluster_points := make([]charting.DataPoint, 0)
 		for i := range points {
 			if labels[i] == cluster {
+				deviations_sum += euclidianDist(points[i], centroids[cluster])
 				cluster_points = append(cluster_points, points[i])
 			}
 		}
+
+		fmt.Printf("Average deviations for cluster %d is %.2f\n", cluster, deviations_sum/float64(len(cluster_points)))
 
 		key := fmt.Sprintf("cluster-%d", cluster)
 		chart.Datasets[key] = &charting.ChartDataset{
@@ -98,4 +104,5 @@ func clusterData(labels []int, centroids []charting.DataPoint, chart *charting.C
 func init() {
 	SimpleChart.RenderFunc = RenderSimple
 	KmeansChart.RenderFunc = RenderKmeans
+	SilhouetteChart.RenderFunc = RenderSilhouette
 }

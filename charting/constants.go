@@ -21,7 +21,17 @@ const (
 	ChartTypeScatter ChartType = "scatter"
 	ChartTypeBubble  ChartType = "bubble"
 	ChartTypePie     ChartType = "pie"
+
+	ChartTypeMultiLine    ChartType = "multi-line"
+	ChartTypeMultiBar     ChartType = "bar"
+	ChartTypeMultiScatter ChartType = "scatter"
+	ChartTypeMultiBubble  ChartType = "bubble"
+	ChartTypeMultiPie     ChartType = "pie"
 )
+
+func Multi(ct ChartType) ChartType {
+	return ChartType("multi-" + string(ct))
+}
 
 type AxisConfig string
 

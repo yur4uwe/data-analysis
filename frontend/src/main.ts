@@ -9,7 +9,7 @@ import { charting } from "../wailsjs/go/models";
 import { Chart, registerables } from "chart.js";
 import ChartDataLabels from "chartjs-plugin-datalabels";
 import { EventsOn } from "../wailsjs/runtime";
-import { renderChart } from "./chart-render";
+import { renderMultiChart, renderChartInto } from "./chart-render";
 import { registry } from "./registry";
 
 Chart.register(...registerables, ChartDataLabels);
@@ -39,22 +39,34 @@ EventsOn("renderComplete", (data: charting.RenderResponse) => {
   console.log("Render complete:", data);
   if (data.error) {
     console.error("Render error:", data.error);
-    const container = document.getElementById("error-container");
-    if (container) {
-      container.innerHTML = `<div style="color: red; padding: 20px;">Error: ${data.error.Message}</div>`;
+    const errorContainer = document.getElementById("error-container");
+    if (errorContainer) {
+      errorContainer.innerHTML = `<div style="color: red; padding: 20px;">Error: ${data.error.Message}</div>`;
     }
   } else {
     console.log("Render completed successfully,", window.activeChartId);
 
     const activeChartData = data.charts[window.activeChartId!];
-    renderChart(activeChartData);
+
+
+    if (activeChartData.type.startsWith("multi-")) {
+      renderMultiChart(activeChartData);
+    } else {
+      let container = document.getElementById("chart-container");
+      if (!container) {
+        container = document.createElement("div");
+        container.id = "chart-container";
+        document.body.appendChild(container);
+      }
+      renderChartInto(activeChartData, container);
+    }
 
     // Update all field labels to reflect actual rendered values
     updateAllFieldLabels(activeChartData);
 
-    const container = document.getElementById("error-container");
-    if (container) {
-      container.innerHTML = "";
+    const errorContainer = document.getElementById("error-container");
+    if (errorContainer) {
+      errorContainer.innerHTML = "";
     }
   }
 });

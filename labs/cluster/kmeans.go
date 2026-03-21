@@ -42,7 +42,7 @@ var (
 	KmeansChart = charting.Chart{
 		ID:          KmeansChartID,
 		Title:       "Kmeans Clusterization",
-		Type:        charting.ChartTypeScatter,
+		Type:        charting.ChartTypeMultiScatter,
 		XAxisLabel:  "X",
 		XAxisConfig: charting.LinearAxis,
 		YAxisLabel:  "Y",
@@ -86,7 +86,7 @@ func RenderKmeans(req *charting.RenderRequest) (res *charting.RenderResponse) {
 		}
 	}
 
-	labels, centroids, err := kmeans(points, centroids, 1000)
+	labels, centroids, err := kmeans(points, centroids, 1000) // 1000 max iterations
 	if err != nil {
 		return res.NewErrorf("failed to cluster data: %s", err.Error())
 	}
@@ -119,7 +119,7 @@ func kmeans(points []charting.DataPoint, centroids []charting.DataPoint, maxIter
 			return nil, nil, errors.New("k-means: centroids haven't coverged")
 		}
 	}
-	fmt.Printf("Completed in %d iterations", i)
+	fmt.Printf("Completed in %d iterations\n", i)
 
 	return labels, centroids, nil
 }
