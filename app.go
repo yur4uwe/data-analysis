@@ -8,6 +8,7 @@ import (
 	"labs/labs"
 	"labs/labs/cluster"
 	"labs/labs/forecasting"
+	"labs/labs/holt"
 	"labs/labs/polyapprox"
 	"labs/labs/render"
 	"labs/labs/stats"
@@ -43,6 +44,7 @@ func (a *App) startup(ctx context.Context) {
 	a.registry[stats.LabID] = labs.NewLab5()
 	a.registry[cluster.LabID] = labs.NewLab6()
 	a.registry[forecasting.LabID] = labs.NewLab7()
+	a.registry[holt.LabID] = labs.NewLab8()
 
 	fmt.Printf("Registered %d labs (lazy initialization)\n", len(a.registry))
 }
@@ -96,8 +98,6 @@ func (a *App) Render(req *charting.RenderRequest) {
 	}()
 }
 
-// RenderSync renders synchronously and returns the response directly
-// This ensures RenderResponse is exported to TypeScript
 func (a *App) RenderSync(req *charting.RenderRequest) (res *charting.RenderResponse) {
 	provider, ok := a.registry[req.LabID]
 	if !ok {

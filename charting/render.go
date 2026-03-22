@@ -81,6 +81,7 @@ func (rr *RenderResponse) NewError(message string) *RenderResponse {
 	if rr == nil {
 		rr = &RenderResponse{}
 	}
+	rr.CachePolicy = CachePolicyDontCache
 	rr.Error = render.NewRenderError(message)
 	return rr
 }

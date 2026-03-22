@@ -19,7 +19,7 @@ const (
 var SilhouetteChart = charting.Chart{
 	ID:         SilhouetteChartID,
 	Title:      "Silhouette Plot",
-	Type:       "multi-bar",
+	Type:       charting.ChartTypeMultiBar,
 	XAxisLabel: "Points (sorted by score)",
 	YAxisLabel: "Silhouette coefficient",
 	Datasets:   map[string]*charting.ChartDataset{},

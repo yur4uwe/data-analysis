@@ -23,6 +23,14 @@ func relativeTrend(y_t, y_t_minus_1 float64) float64 {
 	return y_t * (y_t / y_t_minus_1)
 }
 
+func simpleAvg(history []float64) float64 {
+	sum := 0.0
+	for _, val := range history {
+		sum += val
+	}
+	return sum / float64(len(history))
+}
+
 // 7.5: y_{t+1} = 1/n * sum_{i=0}^{n-1} y_{t-i}
 func slidingAvg(history []float64, window int) float64 {
 	if len(history) == 0 {

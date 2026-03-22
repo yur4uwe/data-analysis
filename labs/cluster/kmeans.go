@@ -42,7 +42,7 @@ var (
 	KmeansChart = charting.Chart{
 		ID:          KmeansChartID,
 		Title:       "Kmeans Clusterization",
-		Type:        charting.ChartTypeMultiScatter,
+		Type:        charting.ChartTypeScatter,
 		XAxisLabel:  "X",
 		XAxisConfig: charting.LinearAxis,
 		YAxisLabel:  "Y",

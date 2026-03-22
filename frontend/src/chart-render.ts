@@ -180,7 +180,7 @@ export function renderMultiChart(chartConfig: charting.Chart) {
 
     // Each cluster should ideally have its own labels matching its data length
     let clusterLabels = labels;
-    if (dataset.pointLabels && dataset.pointLabels.length > 0) {
+    if (!labels && dataset.pointLabels && dataset.pointLabels.length > 0) {
       clusterLabels = dataset.pointLabels;
     }
 

@@ -18,6 +18,7 @@ const (
 	GraphTomorrowAsTodayID = "tomorrow-as-today"
 	GraphTrendID           = "trend"
 	GraphRelativeTrendID   = "relative-trend"
+	GraphSimpleAvgID       = "simple-avg"
 	GraphSlidingAvgID      = "sliding-avg"
 	GraphExponentialAvgID  = "exponential-avg"
 
@@ -101,6 +102,17 @@ var (
 		GraphVariables:  generateStatFields(GraphRelativeTrendID),
 	}
 
+	AverageGraph = charting.ChartDataset{
+		Label:           "Simple Average",
+		BorderColor:     charting.ColorSlate,
+		BackgroundColor: []string{charting.ColorTransparent},
+		BorderWidth:     1,
+		PointRadius:     0,
+		ShowLine:        true,
+		Togglable:       true,
+		GraphVariables:  generateStatFields(GraphSimpleAvgID),
+	}
+
 	SlidingAvgGraph = charting.ChartDataset{
 		Label:           "Sliding Avg",
 		BorderColor:     charting.ColorOrange,
@@ -136,6 +148,7 @@ var (
 			GraphTomorrowAsTodayID: &TomorrowAsTodayGraph,
 			GraphTrendID:           &TrendGraph,
 			GraphRelativeTrendID:   &RelativeTrendGraph,
+			GraphSimpleAvgID:       &AverageGraph,
 			GraphSlidingAvgID:      &SlidingAvgGraph,
 			GraphExponentialAvgID:  &ExponentialAvgGraph,
 		},
@@ -149,7 +162,9 @@ var (
 		LabID,
 		"Time Series Forecasting",
 		map[string]*charting.Chart{
-			ChartForecastID: &ForecastChart,
+			ChartForecastID:     &ForecastChart,
+			ChartAlphaToErrID:   &AlphaToErrorChart,
+			ChartWinSizeToErrID: &WinSizeToErrChart,
 		},
 	)
 
@@ -257,7 +272,6 @@ func RenderForecasting(req *charting.RenderRequest) (res *charting.RenderRespons
 
 	// 2. Tomorrow as Today
 	tatForecast := make([]any, n)
-	tatForecast[0] = rates[0]
 	for i := 1; i < n; i++ {
 		tatForecast[i] = tomorrowAsToday(rates[i-1])
 	}
@@ -279,6 +293,15 @@ func RenderForecasting(req *charting.RenderRequest) (res *charting.RenderRespons
 	}
 	copyChart.UpdateDataForDataset(GraphRelativeTrendID, relTrendForecast)
 	updateGraphStats(copyChart.Datasets[GraphRelativeTrendID], rates, relTrendForecast)
+
+	simpleAvgForecast := make([]any, n)
+	for i := range n {
+		simpleAvgForecast[i] = simpleAvg(rates[:min(i+1, n)])
+	}
+	copyChart.UpdateDataForDataset(GraphSimpleAvgID, simpleAvgForecast)
+	updateGraphStats(copyChart.Datasets[GraphSimpleAvgID], rates, simpleAvgForecast)
+
+	fmt.Println("Simple avg forecast:", simpleAvgForecast)
 
 	// 5. Sliding Average
 	slidingForecast := make([]any, n)
@@ -311,4 +334,6 @@ func RenderForecasting(req *charting.RenderRequest) (res *charting.RenderRespons
 
 func init() {
 	ForecastChart.RenderFunc = RenderForecasting
+	WinSizeToErrChart.RenderFunc = RenderWinSizeErrChart
+	AlphaToErrorChart.RenderFunc = RenderAlphaErrChart
 }
