@@ -133,6 +133,9 @@ func RenderSampleData(req *charting.RenderRequest) (res *charting.RenderResponse
 		return res.NewErrorf("failed to solve polynomial fit: %v", err)
 	}
 
+	mse := CalculateMSE(points.X, points.Y, coeffs)
+	fmt.Printf("Sample Data Fit (Degree %d) MSE: %.4e\n", int(degree), mse)
+
 	minX, maxX := math.Inf(1), math.Inf(-1)
 	for _, xi := range points.X {
 		maxX = max(maxX, xi)
@@ -151,7 +154,7 @@ func RenderSampleData(req *charting.RenderRequest) (res *charting.RenderResponse
 	chartCopy.UpdatePointsForDataset(sampleApproximationGraphID, appeoxX, approx)
 
 	var str strings.Builder
-	str.WriteString("Polynomial Coefficients (")
+	str.WriteString(fmt.Sprintf("MSE: %.4e, Coefficients (", mse))
 	for i, c := range coeffs {
 		fmt.Fprintf(&str, "x%d=%.2f", i, c)
 		if i != len(coeffs)-1 {

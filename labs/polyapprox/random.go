@@ -195,8 +195,10 @@ func RenderRandomFits(req *charting.RenderRequest) (res *charting.RenderResponse
 		for _, xi := range x {
 			approx = append(approx, EvaluatePolynomial(coefs, xi))
 		}
+		mse := CalculateMSE(x, y, coefs)
+		fmt.Printf("Linear Fit MSE: %.4e\n", mse)
 		chartCopy.UpdatePointsForDataset(LinearApproxID, x, approx)
-		chartCopy.Datasets[LinearApproxID].UpdateVariableLabel(0, fmt.Sprintf("Linear Fit Coefficients (a=%.4f, b=%.4f) for y=bx+a", coefs[0], coefs[1]))
+		chartCopy.Datasets[LinearApproxID].UpdateVariableLabel(0, fmt.Sprintf("Linear Fit (MSE: %.4e, a=%.4f, b=%.4f) for y=bx+a", mse, coefs[0], coefs[1]))
 	} else {
 		fmt.Println("linear fit failed:", err)
 	}
@@ -206,8 +208,10 @@ func RenderRandomFits(req *charting.RenderRequest) (res *charting.RenderResponse
 		for _, xi := range x {
 			approx = append(approx, EvaluatePolynomial(coefs, xi))
 		}
+		mse := CalculateMSE(x, y, coefs)
+		fmt.Printf("Quadratic Fit MSE: %.4e\n", mse)
 		chartCopy.UpdatePointsForDataset(QuadApproxID, x, approx)
-		chartCopy.Datasets[QuadApproxID].UpdateVariableLabel(0, fmt.Sprintf("Quadratic Fit Coefficients (a=%.4f, b=%.4f, c=%.4f) for y=cx^2+bx+a", coefs[0], coefs[1], coefs[2]))
+		chartCopy.Datasets[QuadApproxID].UpdateVariableLabel(0, fmt.Sprintf("Quadratic Fit (MSE: %.4e, a=%.4f, b=%.4f, c=%.4f) for y=cx^2+bx+a", mse, coefs[0], coefs[1], coefs[2]))
 	} else {
 		fmt.Println("quadratic fit failed:", err)
 	}

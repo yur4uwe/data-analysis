@@ -5,17 +5,14 @@ import (
 	"sort"
 )
 
-// 7.2: y_{t+1} = y_t
 func tomorrowAsToday(y_t float64) float64 {
 	return y_t
 }
 
-// 7.3: y_{t+1} = y_t + (y_t - y_{t-1})
 func trend(y_t, y_t_minus_1 float64) float64 {
 	return y_t + (y_t - y_t_minus_1)
 }
 
-// 7.4: y_{t+1} = y_t * (y_t / y_{t-1})
 func relativeTrend(y_t, y_t_minus_1 float64) float64 {
 	if y_t_minus_1 == 0 {
 		return y_t
@@ -31,7 +28,6 @@ func simpleAvg(history []float64) float64 {
 	return sum / float64(len(history))
 }
 
-// 7.5: y_{t+1} = 1/n * sum_{i=0}^{n-1} y_{t-i}
 func slidingAvg(history []float64, window int) float64 {
 	if len(history) == 0 {
 		return 0
@@ -46,13 +42,9 @@ func slidingAvg(history []float64, window int) float64 {
 	return sum / float64(window)
 }
 
-// 7.6: y_{t+1} = alpha * y_t + (1 - alpha) * hat{y}_t
-// Note: This needs the previous forecast hat{y}_t
 func exponentialAvg(y_t float64, prev_forecast float64, alpha float64) float64 {
 	return alpha*y_t + (1-alpha)*prev_forecast
 }
-
-// Statistics helpers
 
 func CalculateMean(data []float64) float64 {
 	if len(data) == 0 {
@@ -128,4 +120,25 @@ func CalculateMinMax(data []float64) (min, max float64) {
 		}
 	}
 	return
+}
+
+func CalculateMSE(rates []float64, forecast []any) float64 {
+	var sumSq float64
+	count := 0
+	for i := 0; i < len(rates) && i < len(forecast); i++ {
+		if forecast[i] == nil {
+			continue
+		}
+		val, ok := forecast[i].(float64)
+		if !ok {
+			continue
+		}
+		diff := rates[i] - val
+		sumSq += diff * diff
+		count++
+	}
+	if count == 0 {
+		return math.MaxFloat64
+	}
+	return sumSq / float64(count)
 }

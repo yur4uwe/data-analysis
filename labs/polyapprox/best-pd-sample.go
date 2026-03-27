@@ -24,8 +24,16 @@ var (
 		XAxisConfig: charting.LinearAxis,
 		YAxisConfig: charting.LinearAxis,
 		Datasets: map[string]charting.Dataset{
-			OriginalDataID: &mseGraph,
+			OriginalDataID: &charting.GridDataset{
+				BaseDataset: charting.BaseDataset{
+					Label:          "MSE vs Degree",
+					BorderColor:    charting.ColorAmber,
+					BorderWidth:    2,
+					GraphVariables: []charting.MutableField{BestDegreeField},
+				},
+			},
 		},
+		ChartVariables: ChartVariables,
 	}
 
 	SampleMSEMetadata = SampleMSEChart.Meta()
@@ -52,24 +60,39 @@ func RenderSamplePolynomialMSE(req *charting.RenderRequest) (res *charting.Rende
 	maxDegree := min(len(points.X)-1, 45)
 	degrees := make([]float64, 0, maxDegree)
 	errs := make([]float64, 0, maxDegree)
-	labels := make([]string, 0, maxDegree)
 
+	bestDegree := 1
+	minMSE := -1.0
+
+	fmt.Printf("Calculating MSE for %s\n", SampleMSEID)
 	for degree := range maxDegree - 1 {
 		degree += 1
 		coeffs, err := SolvePolynomialFit(points.X, points.Y, degree)
 		if err != nil {
-			fmt.Println("Error:", err)
+			fmt.Printf("Degree %d: fit failed (%s)\n", degree, err)
 			continue
 		}
-		labels = append(labels, fmt.Sprintf("%d", degree))
+		mse := CalculateMSE(points.X, points.Y, coeffs)
+		fmt.Printf("Degree %d: MSE = %.4e\n", degree, mse)
+
+		if minMSE < 0 || mse < minMSE {
+			minMSE = mse
+			bestDegree = degree
+		}
+
 		degrees = append(degrees, float64(degree))
-		errs = append(errs, CalculateMSE(points.X, points.Y, coeffs))
+		errs = append(errs, mse)
 	}
 
 	chartCopy := charting.CopyChart(SampleMSEChart)
 	chartCopy.UpdatePointsForDataset(OriginalDataID, degrees, errs)
 
-	chartCopy.Labels = labels
+	gvars := chartCopy.Datasets[OriginalDataID].Meta()
+	for i := range gvars {
+		if gvars[i].ID == BestDegreeID {
+			gvars[i].Label = fmt.Sprintf("Best Degree: %d (MSE: %.4e)", bestDegree, minMSE)
+		}
+	}
 
 	res = charting.NewRenderResponse()
 	res.AddChart(SampleMSEID, &chartCopy)

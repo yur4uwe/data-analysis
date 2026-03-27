@@ -37,10 +37,10 @@ func (bd *BaseDataset) Meta() []MutableField {
 }
 
 func (bd *BaseDataset) UpdateVariableLabel(idx int, str string) error {
-	if idx < 0 || idx >= len(bd.DataLabels) {
+	if idx < 0 || idx >= len(bd.GraphVariables) {
 		return errors.New("index out of range")
 	}
-	bd.DataLabels[idx] = str
+	bd.GraphVariables[idx].Label = str
 	return nil
 }
 
