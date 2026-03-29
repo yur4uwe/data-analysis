@@ -59,80 +59,87 @@ var (
 		Control: charting.ControlRange,
 	}
 
-	OriginalDataGraph = charting.CategoricalDataset{
+	OriginalDataGraph = charting.GridDataset{
 		BaseDataset: charting.BaseDataset{
 			Label:       "Original Rate",
-			BorderColor: charting.ToColor(charting.ColorTeal),
+			BorderColor: charting.ColorTeal,
 			BorderWidth: 2,
 			Togglable:   false,
 		},
-		BackgroundColor: []charting.Color{charting.ToColor(charting.ColorTransparent)},
+		PointRadius:     2,
+		BackgroundColor: charting.ColorTransparent,
 	}
 
-	TomorrowAsTodayGraph = charting.CategoricalDataset{
+	TomorrowAsTodayGraph = charting.GridDataset{
 		BaseDataset: charting.BaseDataset{
 			Label:          "Tomorrow as Today",
-			BorderColor:    charting.ToColor(charting.ColorAmber),
+			BorderColor:    charting.ColorAmber,
 			BorderWidth:    1,
 			Togglable:      true,
 			GraphVariables: generateStatFields(GraphTomorrowAsTodayID),
 		},
-		BackgroundColor: []charting.Color{charting.ToColor(charting.ColorTransparent)},
+		BackgroundColor: charting.ColorTransparent,
+		PointRadius:     2,
 	}
 
-	TrendGraph = charting.CategoricalDataset{
+	TrendGraph = charting.GridDataset{
 		BaseDataset: charting.BaseDataset{
 			Label:          "Linear Trend",
-			BorderColor:    charting.ToColor(charting.ColorBlue),
+			BorderColor:    charting.ColorBlue,
 			BorderWidth:    1,
 			Togglable:      true,
 			GraphVariables: generateStatFields(GraphTrendID),
 		},
-		BackgroundColor: []charting.Color{charting.ToColor(charting.ColorTransparent)},
+		PointRadius:     2,
+		BackgroundColor: charting.ColorTransparent,
 	}
 
-	RelativeTrendGraph = charting.CategoricalDataset{
+	RelativeTrendGraph = charting.GridDataset{
 		BaseDataset: charting.BaseDataset{
 			Label:          "Relative Trend",
-			BorderColor:    charting.ToColor(charting.ColorViolet),
+			BorderColor:    charting.ColorViolet,
 			BorderWidth:    1,
 			Togglable:      true,
 			GraphVariables: generateStatFields(GraphRelativeTrendID),
 		},
-		BackgroundColor: []charting.Color{charting.ToColor(charting.ColorTransparent)},
+		PointRadius:     2,
+		BackgroundColor: charting.ColorTransparent,
 	}
 
-	AverageGraph = charting.CategoricalDataset{
+	AverageGraph = charting.GridDataset{
 		BaseDataset: charting.BaseDataset{
 			Label:          "Simple Average",
-			BorderColor:    charting.ToColor(charting.ColorSlate),
+			BorderColor:    charting.ColorSlate,
 			BorderWidth:    1,
 			Togglable:      true,
 			GraphVariables: generateStatFields(GraphSimpleAvgID),
 		},
-		BackgroundColor: []charting.Color{charting.ToColor(charting.ColorTransparent)},
+		PointRadius:     2,
+		BackgroundColor: charting.ColorTransparent,
 	}
 
-	SlidingAvgGraph = charting.CategoricalDataset{
+	SlidingAvgGraph = charting.GridDataset{
 		BaseDataset: charting.BaseDataset{
 			Label:          "Sliding Avg",
-			BorderColor:    charting.ToColor(charting.ColorOrange),
+			BorderColor:    charting.ColorOrange,
 			BorderWidth:    1,
 			Togglable:      true,
 			GraphVariables: generateStatFields(GraphSlidingAvgID),
 		},
-		BackgroundColor: []charting.Color{charting.ToColor(charting.ColorTransparent)},
+		PointRadius:     2,
+		BackgroundColor: charting.ColorTransparent,
 	}
 
-	ExponentialAvgGraph = charting.CategoricalDataset{
+	ExponentialAvgGraph = charting.GridDataset{
 		BaseDataset: charting.BaseDataset{
 			Label:          "Exp. Smoothing",
-			BorderColor:    charting.ToColor(charting.ColorRed),
+			BorderColor:    charting.ColorRed,
 			BorderWidth:    1,
 			Togglable:      true,
 			GraphVariables: generateStatFields(GraphExponentialAvgID),
 		},
-		BackgroundColor: []charting.Color{charting.ToColor(charting.ColorTransparent)},
+		PointRadius:     2,
+		BackgroundColor: charting.ColorTransparent,
 	}
 
 	ForecastChart = charting.Chart{
@@ -273,22 +280,25 @@ func RenderForecasting(req *charting.RenderRequest) (res *charting.RenderRespons
 	copyChart.Labels = exchangeRateData.Date
 
 	// 1. Original Data
-	copyChart.UpdateDataForDataset(GraphOriginalDataID, charting.ToAnySlice(rates))
+	copyChart.UpdateDataPointsForDataset(GraphOriginalDataID, charting.IndexedDataPoints(rates))
 
 	// 2. Tomorrow as Today
 	tatForecast := make([]any, n)
+	tatForecast[0] = nil
 	for i := 1; i < n; i++ {
 		tatForecast[i] = tomorrowAsToday(rates[i-1])
 	}
-	copyChart.UpdateDataForDataset(GraphTomorrowAsTodayID, tatForecast)
+	copyChart.UpdateDataPointsForDataset(GraphTomorrowAsTodayID, charting.AnyToPointsSlice(tatForecast))
 	updateGraphStats(copyChart.Datasets[GraphTomorrowAsTodayID], rates, tatForecast)
 
 	// 3. Trend
 	trendForecast := make([]any, n)
+	trendForecast[0] = nil
+	trendForecast[1] = nil
 	for i := 2; i < n; i++ {
 		trendForecast[i] = trend(rates[i-1], rates[i-2])
 	}
-	copyChart.UpdateDataForDataset(GraphTrendID, trendForecast)
+	copyChart.UpdateDataPointsForDataset(GraphTrendID, charting.AnyToPointsSlice(trendForecast))
 	updateGraphStats(copyChart.Datasets[GraphTrendID], rates, trendForecast)
 
 	// 4. Relative Trend
@@ -296,14 +306,14 @@ func RenderForecasting(req *charting.RenderRequest) (res *charting.RenderRespons
 	for i := 2; i < n; i++ {
 		relTrendForecast[i] = relativeTrend(rates[i-1], rates[i-2])
 	}
-	copyChart.UpdateDataForDataset(GraphRelativeTrendID, relTrendForecast)
+	copyChart.UpdateDataPointsForDataset(GraphRelativeTrendID, charting.AnyToPointsSlice(relTrendForecast))
 	updateGraphStats(copyChart.Datasets[GraphRelativeTrendID], rates, relTrendForecast)
 
 	simpleAvgForecast := make([]any, n)
 	for i := range n {
 		simpleAvgForecast[i] = simpleAvg(rates[:min(i+1, n)])
 	}
-	copyChart.UpdateDataForDataset(GraphSimpleAvgID, simpleAvgForecast)
+	copyChart.UpdateDataPointsForDataset(GraphSimpleAvgID, charting.AnyToPointsSlice(simpleAvgForecast))
 	updateGraphStats(copyChart.Datasets[GraphSimpleAvgID], rates, simpleAvgForecast)
 
 	// 5. Sliding Average
@@ -314,7 +324,7 @@ func RenderForecasting(req *charting.RenderRequest) (res *charting.RenderRespons
 		limit := min(i, win)
 		slidingForecast[i] = slidingAvg(rates[:i], limit)
 	}
-	copyChart.UpdateDataForDataset(GraphSlidingAvgID, slidingForecast)
+	copyChart.UpdateDataPointsForDataset(GraphSlidingAvgID, charting.AnyToPointsSlice(slidingForecast))
 	slidingDs := copyChart.Datasets[GraphSlidingAvgID]
 	slidingDs.UpdateLabel(fmt.Sprintf("Sliding Avg (n=%d)", win))
 	updateGraphStats(slidingDs, rates, slidingForecast)
@@ -325,7 +335,7 @@ func RenderForecasting(req *charting.RenderRequest) (res *charting.RenderRespons
 	for i := 1; i < n; i++ {
 		expForecast[i] = exponentialAvg(rates[i-1], expForecast[i-1].(float64), alpha)
 	}
-	copyChart.UpdateDataForDataset(GraphExponentialAvgID, expForecast)
+	copyChart.UpdateDataPointsForDataset(GraphExponentialAvgID, charting.AnyToPointsSlice(expForecast))
 	expDs := copyChart.Datasets[GraphExponentialAvgID]
 	expDs.UpdateLabel(fmt.Sprintf("Exp. Smoothing (α=%.2f)", alpha))
 	updateGraphStats(expDs, rates, expForecast)
@@ -385,20 +395,20 @@ func RenderOptimal(req *charting.RenderRequest) (res *charting.RenderResponse) {
 			bestAlpha = alpha
 			bestExpForecast = expForecast
 		}
-		fmt.Printf("Exponential smoothing: alpha = %f, MSE = %.5f\n", alpha, mse)
+		fmt.Printf("Exponential smoothing: alpha = %.2f, MSE = %.5f\n", alpha, mse)
 	}
 
 	copyChart := charting.CopyChart(OptimalParametersChart)
 	copyChart.Labels = exchangeRateData.Date
 
-	copyChart.UpdateDataForDataset(GraphOriginalDataID, charting.ToAnySlice(rates))
+	copyChart.UpdateDataPointsForDataset(GraphOriginalDataID, charting.IndexedDataPoints(rates))
 
-	copyChart.UpdateDataForDataset(GraphSlidingAvgID, bestSlidingForecast)
+	copyChart.UpdateDataPointsForDataset(GraphSlidingAvgID, charting.AnyToPointsSlice(bestSlidingForecast))
 	slidingDs := copyChart.Datasets[GraphSlidingAvgID]
 	slidingDs.UpdateLabel(fmt.Sprintf("Opt. Sliding Avg (n=%d, MSE=%.4f)", bestWin, minWinMSE))
 	updateGraphStats(slidingDs, rates, bestSlidingForecast)
 
-	copyChart.UpdateDataForDataset(GraphExponentialAvgID, bestExpForecast)
+	copyChart.UpdateDataPointsForDataset(GraphExponentialAvgID, charting.AnyToPointsSlice(bestExpForecast))
 	expDs := copyChart.Datasets[GraphExponentialAvgID]
 	expDs.UpdateLabel(fmt.Sprintf("Opt. Exp. Smoothing (α=%.2f, MSE=%.4f)", bestAlpha, minAlphaMSE))
 	updateGraphStats(expDs, rates, bestExpForecast)

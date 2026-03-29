@@ -6,7 +6,7 @@ import { charting } from "../wailsjs/go/models"
  */
 export type DataPoint = {
     x: number
-    y: number
+    y: number | null
 }
 
 /**
@@ -37,7 +37,7 @@ export type BaseDataset = {
  * Mapped from charting.GridDataset.
  */
 export type GridDataset = BaseDataset & {
-    data: (DataPoint | null)[]
+    data: DataPoint[]
     backgroundColor: string
     pointRadius: number
     pointStyle: string
@@ -59,7 +59,7 @@ export type CategoricalDataset = BaseDataset & {
  * Uses 'pointData' as the JSON key for coordinates.
  */
 export type HeatmapDataset = BaseDataset & {
-    pointData: (HeatmapPoint | null)[]
+    pointData: HeatmapPoint[]
     backgroundColor: string[]
 }
 
@@ -84,19 +84,24 @@ export function isHeatmapDataset(ds: Dataset): ds is HeatmapDataset {
 
 /**
  * Type guard for GridDataset.
+ * Checks if the data array contains XY point objects.
  */
 export function isGridDataset(ds: Dataset): ds is GridDataset {
-    return !isHeatmapDataset(ds) && 
-           Array.isArray(ds.data) && 
-           ds.data.length > 0 && 
-           (ds.data[0] === null || (typeof ds.data[0] === 'object' && 'x' in ds.data[0]));
+    if (isHeatmapDataset(ds) || !Array.isArray(ds.data) || ds.data.length === 0) return false;
+    // Find the first non-null element to determine type
+    const firstValid = (ds.data as any[]).find(v => v !== null);
+    if (!firstValid) return true; // Treat empty/all-null as compatible
+    return typeof firstValid === 'object' && 'x' in firstValid;
 }
 
 /**
  * Type guard for CategoricalDataset.
+ * Checks if the data array contains primitive numbers.
  */
 export function isCategoricalDataset(ds: Dataset): ds is CategoricalDataset {
-    return !isHeatmapDataset(ds) && 
-           Array.isArray(ds.data) && 
-           (ds.data.length === 0 || typeof ds.data[0] === 'number' || ds.data[0] === null);
+    if (isHeatmapDataset(ds) || !Array.isArray(ds.data)) return false;
+    if (ds.data.length === 0) return true;
+    const firstValid = (ds.data as any[]).find(v => v !== null);
+    if (!firstValid) return true;
+    return typeof firstValid === 'number';
 }

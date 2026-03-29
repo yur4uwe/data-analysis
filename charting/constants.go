@@ -8,8 +8,8 @@ import (
 
 // DataPoint represents a point with x and y coordinates for scatter/bubble charts
 type DataPoint struct {
-	X float64 `json:"x" csv:"x"`
-	Y float64 `json:"y" csv:"y"`
+	X float64  `json:"x" csv:"x"`
+	Y *float64 `json:"y" csv:"y"`
 }
 
 // FieldControl specifies what UI element should render a field
@@ -87,26 +87,26 @@ func ToColor(colorlike string) Color {
 }
 
 const (
-	ColorBlue        = "#1d4ed8"
-	ColorRed         = "#b91c1c"
-	ColorAmber       = "#d97706"
-	ColorGreen       = "#16a34a"
-	ColorViolet      = "#6d28d9"
-	ColorPurple      = "#7c3aed"
-	ColorFuchsia     = "#c026d3"
-	ColorOrange      = "#ea580c"
-	ColorLightPurple = "#9333ea"
-	ColorCrimson     = "#be123c"
-	ColorEmerald     = "#059669"
-	ColorCyan        = "#0891b2"
-	ColorPink        = "#db2777"
-	ColorLime        = "#65a30d"
-	ColorTeal        = "#0d9488"
-	ColorIndigo      = "#4f46e5"
-	ColorRose        = "#e11d48"
-	ColorSky         = "#0284c7"
-	ColorYellow      = "#ca8a04"
-	ColorSlate       = "#475569"
+	ColorBlue        Color = "#1d4ed8"
+	ColorRed         Color = "#b91c1c"
+	ColorAmber       Color = "#d97706"
+	ColorGreen       Color = "#16a34a"
+	ColorViolet      Color = "#6d28d9"
+	ColorPurple      Color = "#7c3aed"
+	ColorFuchsia     Color = "#c026d3"
+	ColorOrange      Color = "#ea580c"
+	ColorLightPurple Color = "#9333ea"
+	ColorCrimson     Color = "#be123c"
+	ColorEmerald     Color = "#059669"
+	ColorCyan        Color = "#0891b2"
+	ColorPink        Color = "#db2777"
+	ColorLime        Color = "#65a30d"
+	ColorTeal        Color = "#0d9488"
+	ColorIndigo      Color = "#4f46e5"
+	ColorRose        Color = "#e11d48"
+	ColorSky         Color = "#0284c7"
+	ColorYellow      Color = "#ca8a04"
+	ColorSlate       Color = "#475569"
 
-	ColorTransparent = "rgba(0, 0, 0, 0.1)"
+	ColorTransparent Color = "rgba(0, 0, 0, 0.1)"
 )

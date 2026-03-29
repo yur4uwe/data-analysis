@@ -17,16 +17,16 @@ var (
 	BarGraph = charting.CategoricalDataset{
 		BaseDataset: charting.BaseDataset{
 			Label:       "Spending",
-			BorderColor: charting.ToColor("rgba(0, 0, 0, 0.1)"),
+			BorderColor: "rgba(0, 0, 0, 0.1)",
 			BorderWidth: 2,
 			Togglable:   true,
 		},
 		BackgroundColor: []charting.Color{
-			charting.ToColor(charting.ColorAmber),
-			charting.ToColor(charting.ColorBlue),
-			charting.ToColor(charting.ColorCyan),
-			charting.ToColor(charting.ColorEmerald),
-			charting.ToColor(charting.ColorFuchsia),
+			charting.ColorAmber,
+			charting.ColorBlue,
+			charting.ColorCyan,
+			charting.ColorEmerald,
+			charting.ColorFuchsia,
 		},
 	}
 

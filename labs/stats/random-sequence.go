@@ -25,10 +25,10 @@ var (
 	RandomSequenceGraph = charting.GridDataset{
 		BaseDataset: charting.BaseDataset{
 			Label:       "Sequence of random numbers",
-			BorderColor: charting.ToColor(charting.ColorAmber),
+			BorderColor: charting.ColorAmber,
 			Togglable:   false,
 		},
-		BackgroundColor: charting.ToColor(charting.ColorAmber),
+		BackgroundColor: charting.ColorAmber,
 		PointRadius:     3,
 	}
 )

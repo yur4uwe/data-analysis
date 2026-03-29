@@ -44,7 +44,7 @@ var (
 		BaseDataset: charting.BaseDataset{
 			BorderWidth: 0,
 		},
-		BackgroundColor: []charting.Color{charting.ToColor(charting.ColorAmber)},
+		BackgroundColor: []charting.Color{charting.ColorAmber},
 	}
 )
 
@@ -183,7 +183,7 @@ func createErrorDatasets(metrics map[string][]any) map[string]charting.Dataset {
 		GraphStdErrID: "Std Dev Error",
 	}
 
-	colors := map[string]string{
+	colors := map[string]charting.Color{
 		GraphMinErrID: charting.ColorTeal,
 		GraphMaxErrID: charting.ColorRed,
 		GraphAvgErrID: charting.ColorAmber,
@@ -196,7 +196,7 @@ func createErrorDatasets(metrics map[string][]any) map[string]charting.Dataset {
 		ds := ErrorGraphBase
 		ds.Label = names[id]
 		ds.UpdateData(data)
-		ds.BackgroundColor = []charting.Color{charting.ToColor(colors[id])}
+		ds.BackgroundColor = []charting.Color{colors[id]}
 		ds.DataLabels = toPointLabels(data)
 		datasets[id] = &ds
 	}

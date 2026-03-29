@@ -1,6 +1,7 @@
 import { charting } from "../wailsjs/go/models";
 import { getDataLabels } from "./chart-render";
-import { Dataset, isHeatmapDataset } from "./types";
+import { hexToRgb } from "./heatmap-plugin";
+import { Dataset, isGridDataset, isHeatmapDataset } from "./types";
 
 export const defaultChartOptions = (title: string, chartType?: string) => ({
 	responsive: true,
@@ -102,19 +103,6 @@ function interpolateColor(value: number, colors: string[]): string {
 	return `rgb(${r},${g},${b})`;
 }
 
-function hexToRgb(hex: string) {
-	hex = hex.replace("#", "");
-	if (hex.length === 3) {
-		hex = hex.split("").map(s => s + s).join("");
-	}
-	const num = parseInt(hex, 16);
-	return {
-		r: (num >> 16) & 255,
-		g: (num >> 8) & 255,
-		b: num & 255
-	};
-}
-
 export const processDataset = (chartType: string) => (dataset: Dataset) => {
 	if (!dataset) return { label: "unknown", data: [] };
 
@@ -176,7 +164,19 @@ export const processDataset = (chartType: string) => (dataset: Dataset) => {
 
 	// For standard datasets (Grid or Categorical)
 	if ("data" in dataset) {
-		data = dataset.data;
+		const isGrid = isGridDataset(dataset);
+		// Ensure no NaN values reach Chart.js and map them to null
+		data = (dataset.data as any[]).map((v, i) => {
+			if (v === null || v === undefined) {
+				// If it's a grid dataset (xy points), we MUST provide x so Chart.js knows WHERE the gap is
+				return isGrid ? { x: i, y: null } : null;
+			}
+			if (typeof v === 'number' && isNaN(v)) return isGrid ? { x: i, y: null } : null;
+			if (typeof v === 'object' && 'y' in v && (v.y === null || (typeof v.y === 'number' && isNaN(v.y)))) {
+				return { ...v, y: null };
+			}
+			return v;
+		});
 	} else {
 		console.warn(`Empty data in dataset ${dataset.label}`);
 		data = [];
@@ -188,7 +188,7 @@ export const processDataset = (chartType: string) => (dataset: Dataset) => {
 		label: dataset.label || "Unnamed dataset",
 		data: data,
 		borderColor: dataset.borderColor || "#000000",
-		backgroundColor: (dataset as any).backgroundColor ?? dataset.borderColor ?? "#000000",
+		backgroundColor: (dataset as any).backgroundColor || dataset.borderColor || "#000000",
 		tension: (dataset as any).tension ?? 0,
 		fill: (dataset as any).fill ?? false,
 		hidden: dataset.hidden ?? false,

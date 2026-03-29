@@ -29,11 +29,11 @@ var (
 			Type:  charting.ChartTypeBar,
 		},
 		BackgroundColor: []charting.Color{
-			charting.ToColor(charting.ColorEmerald),
-			charting.ToColor(charting.ColorLime),
-			charting.ToColor(charting.ColorIndigo),
-			charting.ToColor(charting.ColorSlate),
-			charting.ToColor(charting.ColorFuchsia),
+			charting.ColorEmerald,
+			charting.ColorLime,
+			charting.ColorIndigo,
+			charting.ColorSlate,
+			charting.ColorFuchsia,
 		},
 	}
 

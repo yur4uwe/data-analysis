@@ -66,16 +66,17 @@ func (c *Chart) UpdatePointsForDataset(datasetId string, x, y []float64) error {
 
 	p := make([]any, len(x))
 	for i := range x {
+		val := y[i]
 		p[i] = &DataPoint{
 			X: x[i],
-			Y: y[i],
+			Y: &val,
 		}
 	}
 
 	return c.Datasets[datasetId].UpdateData(p)
 }
 
-func (c *Chart) UpdateDataPointsForDataset(datasetId string, points []*DataPoint) error {
+func (c *Chart) UpdateDataPointsForDataset(datasetId string, points []DataPoint) error {
 	dataset, ok := c.Datasets[datasetId]
 	if !ok {
 		return errors.New("dataset not found in chart")
@@ -96,61 +97,6 @@ func (c *Chart) UpdateDataForDataset(datasetId string, data []any) error {
 		return errors.New("dataset not found in chart")
 	}
 	return dataset.UpdateData(data)
-}
-
-// ToAnySlice converts a slice of float64 to a slice of any
-func ToAnySlice(data []float64) []any {
-	res := make([]any, len(data))
-	for i, v := range data {
-		val := v
-		res[i] = &val
-	}
-	return res
-}
-
-func ToFloat64PtrSlice(data []float64) []*float64 {
-	res := make([]*float64, len(data))
-	for i, v := range data {
-		val := v
-		res[i] = &val
-	}
-	return res
-}
-
-func ToDataPointPtrSlice(data []DataPoint) []*DataPoint {
-	res := make([]*DataPoint, len(data))
-	for i := range data {
-		res[i] = &data[i]
-	}
-	return res
-}
-
-func PointsToAnySlice(data []*DataPoint) []any {
-	res := make([]any, len(data))
-	for i, v := range data {
-		res[i] = v
-	}
-	return res
-}
-
-func AnyToPointsSlice(data []any) []*DataPoint {
-	res := make([]*DataPoint, len(data))
-	for i, v := range data {
-		if v == nil {
-			res[i] = nil
-			continue
-		}
-		if p, ok := v.(*DataPoint); ok {
-			res[i] = p
-		} else if p, ok := v.(DataPoint); ok {
-			res[i] = &p
-		} else if hp, ok := v.(*HeatmapPoint); ok {
-			res[i] = &hp.DataPoint
-		} else if hp, ok := v.(HeatmapPoint); ok {
-			res[i] = &hp.DataPoint
-		}
-	}
-	return res
 }
 
 // GenerateLabels derives chart Labels from the x-values of PointData across all datasets.
@@ -176,7 +122,7 @@ func (c *Chart) GenerateLabels(precision int) {
 	labels := make([]string, len(points))
 	format := fmt.Sprintf("%%.%df", precision)
 	for i, p := range points {
-		if p != nil {
+		if p.Y != nil {
 			labels[i] = fmt.Sprintf(format, p.X)
 		} else {
 			labels[i] = ""

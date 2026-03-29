@@ -41,28 +41,28 @@ var (
 	MeanCorrelationGraph = charting.GridDataset{
 		BaseDataset: charting.BaseDataset{
 			Label:       "Relatioship between error of mean and size of sample",
-			BorderColor: charting.ToColor(charting.ColorLightPurple),
+			BorderColor: charting.ColorLightPurple,
 			BorderWidth: 2,
 			Togglable:   true,
 			GraphVariables: []charting.MutableField{
 				MeanSampleField,
 			},
 		},
-		BackgroundColor: charting.ToColor(charting.ColorTransparent),
+		BackgroundColor: charting.ColorTransparent,
 		PointRadius:     0,
 	}
 
 	StdDevCorrelationGraph = charting.GridDataset{
 		BaseDataset: charting.BaseDataset{
 			Label:       "Relationship between error of stddev and size of sample",
-			BorderColor: charting.ToColor(charting.ColorOrange),
+			BorderColor: charting.ColorOrange,
 			BorderWidth: 2,
 			Togglable:   true,
 			GraphVariables: []charting.MutableField{
 				StdDevSampleField,
 			},
 		},
-		BackgroundColor: charting.ToColor(charting.ColorTransparent),
+		BackgroundColor: charting.ColorTransparent,
 		PointRadius:     0,
 	}
 

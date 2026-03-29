@@ -17,16 +17,16 @@ var (
 	RadialGraph = charting.CategoricalDataset{
 		BaseDataset: charting.BaseDataset{
 			Label:       "Revenue Sources",
-			BorderColor: charting.ToColor(charting.ColorTransparent),
+			BorderColor: charting.ColorTransparent,
 			BorderWidth: 2,
 			Togglable:   true,
 		},
 		BackgroundColor: []charting.Color{
-			charting.ToColor(charting.ColorAmber),
-			charting.ToColor(charting.ColorBlue),
-			charting.ToColor(charting.ColorCyan),
-			charting.ToColor(charting.ColorEmerald),
-			charting.ToColor(charting.ColorFuchsia),
+			charting.ColorAmber,
+			charting.ColorBlue,
+			charting.ColorCyan,
+			charting.ColorEmerald,
+			charting.ColorFuchsia,
 		},
 	}
 

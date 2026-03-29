@@ -57,17 +57,17 @@ var (
 	originalData = charting.GridDataset{
 		BaseDataset: charting.BaseDataset{
 			Label:       "Original",
-			BorderColor: charting.ToColor("#2563eb"), // Blue
+			BorderColor: "#2563eb", // Blue
 			BorderWidth: 2,
 			Togglable:   true,
 		},
-		BackgroundColor: charting.ToColor("rgba(37, 99, 235, 0.1)"),
+		BackgroundColor: "rgba(37, 99, 235, 0.1)",
 		PointRadius:     0,
 	}
 	noisyData = charting.GridDataset{
 		BaseDataset: charting.BaseDataset{
 			Label:       "Noisy",
-			BorderColor: charting.ToColor("#dc2626"), // Red
+			BorderColor: "#dc2626", // Red
 			BorderWidth: 1,
 			Togglable:   true,
 			GraphVariables: []charting.MutableField{
@@ -82,23 +82,23 @@ var (
 				},
 			},
 		},
-		BackgroundColor: charting.ToColor("rgba(220, 38, 38, 0.1)"),
+		BackgroundColor: "rgba(220, 38, 38, 0.1)",
 		PointRadius:     2,
 	}
 	recurrentAvg = charting.GridDataset{
 		BaseDataset: charting.BaseDataset{
 			Label:       "Recurrent Average",
-			BorderColor: charting.ToColor("#16a34a"), // Green
+			BorderColor: "#16a34a", // Green
 			BorderWidth: 2,
 			Togglable:   true,
 		},
-		BackgroundColor: charting.ToColor("rgba(22, 163, 74, 0.1)"),
+		BackgroundColor: "rgba(22, 163, 74, 0.1)",
 		PointRadius:     0,
 	}
 	slidingWindowAvg = charting.GridDataset{
 		BaseDataset: charting.BaseDataset{
 			Label:       "Sliding Window Average",
-			BorderColor: charting.ToColor("#9333ea"), // Purple
+			BorderColor: "#9333ea", // Purple
 			BorderWidth: 2,
 			Togglable:   true,
 			GraphVariables: []charting.MutableField{
@@ -113,13 +113,13 @@ var (
 				},
 			},
 		},
-		BackgroundColor: charting.ToColor("rgba(147, 51, 234, 0.1)"),
+		BackgroundColor: "rgba(147, 51, 234, 0.1)",
 		PointRadius:     0,
 	}
 	exponentialAverage = charting.GridDataset{
 		BaseDataset: charting.BaseDataset{
 			Label:       "Exponential Average",
-			BorderColor: charting.ToColor("#ea580c"), // Orange
+			BorderColor: "#ea580c", // Orange
 			BorderWidth: 3,
 			Togglable:   true,
 			GraphVariables: []charting.MutableField{
@@ -134,7 +134,7 @@ var (
 				},
 			},
 		},
-		BackgroundColor: charting.ToColor("rgba(234, 88, 12, 0.1)"),
+		BackgroundColor: "rgba(234, 88, 12, 0.1)",
 		PointRadius:     0,
 	}
 	main = charting.Chart{

@@ -80,44 +80,44 @@ var (
 	OriginalData = charting.GridDataset{
 		BaseDataset: charting.BaseDataset{
 			Label:       "Original",
-			BorderColor: charting.ToColor(charting.ColorAmber),
+			BorderColor: charting.ColorAmber,
 			BorderWidth: 2,
 			Togglable:   true,
 		},
-		BackgroundColor: charting.ToColor(charting.ColorAmber),
+		BackgroundColor: charting.ColorAmber,
 	}
 
 	NoisyData = charting.GridDataset{
 		BaseDataset: charting.BaseDataset{
 			Label:       "Noisy",
-			BorderColor: charting.ToColor(charting.ColorCyan),
+			BorderColor: charting.ColorCyan,
 			BorderWidth: 1,
 			Togglable:   true,
 		},
-		BackgroundColor: charting.ToColor(charting.ColorCyan),
+		BackgroundColor: charting.ColorCyan,
 		PointRadius:     2,
 	}
 
 	LinearApprox = charting.GridDataset{
 		BaseDataset: charting.BaseDataset{
 			Label:          "Linear Approximation",
-			BorderColor:    charting.ToColor("#16a34a"),
+			BorderColor:    "#16a34a",
 			BorderWidth:    2,
 			Togglable:      true,
 			GraphVariables: []charting.MutableField{LinearFitCoefficients},
 		},
-		BackgroundColor: charting.ToColor("rgba(22, 163, 74, 0.1)"),
+		BackgroundColor: "rgba(22, 163, 74, 0.1)",
 	}
 
 	QuadApprox = charting.GridDataset{
 		BaseDataset: charting.BaseDataset{
 			Label:          "Quadratic Approximation",
-			BorderColor:    charting.ToColor("#9333ea"),
+			BorderColor:    "#9333ea",
 			BorderWidth:    2,
 			Togglable:      true,
 			GraphVariables: []charting.MutableField{QuadraticFitCoefficients},
 		},
-		BackgroundColor: charting.ToColor("rgba(147, 51, 234, 0.1)"),
+		BackgroundColor: "rgba(147, 51, 234, 0.1)",
 		PointRadius:     0,
 	}
 

@@ -63,27 +63,30 @@ func (bd *BaseDataset) CopyBase() BaseDataset {
 
 type GridDataset struct {
 	BaseDataset
-	Data            []*DataPoint `json:"data,omitempty"`
-	BackgroundColor Color        `json:"backgroundColor,omitempty"`
-	PointRadius     int          `json:"pointRadius,omitempty"`
-	PointStyle      string       `json:"pointStyle,omitempty"`
-	HideLine        bool         `json:"hideLine"`
+	Data            []DataPoint `json:"data,omitempty"`
+	BackgroundColor Color       `json:"backgroundColor,omitempty"`
+	PointRadius     int         `json:"pointRadius,omitempty"`
+	PointStyle      string      `json:"pointStyle,omitempty"`
+	HideLine        bool        `json:"hideLine"`
 }
 
 var _ Dataset = &GridDataset{}
 
 func (gd *GridDataset) UpdateData(data []any) error {
-	gd.Data = make([]*DataPoint, len(data))
+	gd.Data = make([]DataPoint, len(data))
 	for i, v := range data {
 		if v == nil {
-			gd.Data[i] = nil
+			// If Y is nullable, we can't just have a nil DataPoint in a value slice.
+			// We should probably skip or provide a DataPoint with nil Y.
+			// Given the user's intent, we assume 'v' should be a DataPoint or convertible.
+			gd.Data[i] = DataPoint{X: float64(i), Y: nil}
 			continue
 		}
 
 		if p, ok := v.(*DataPoint); ok {
-			gd.Data[i] = p
+			gd.Data[i] = *p
 		} else if p, ok := v.(DataPoint); ok {
-			gd.Data[i] = &p
+			gd.Data[i] = p
 		} else {
 			return errors.New("invalid data type for GridDataset: expected *DataPoint or DataPoint")
 		}
@@ -103,7 +106,7 @@ func (gd *GridDataset) Copy() Dataset {
 	newGD := *gd
 	newGD.BaseDataset = gd.CopyBase()
 	if gd.Data != nil {
-		newGD.Data = make([]*DataPoint, len(gd.Data))
+		newGD.Data = make([]DataPoint, len(gd.Data))
 		copy(newGD.Data, gd.Data)
 	}
 	return &newGD
@@ -127,7 +130,8 @@ func (cd *CategoricalDataset) UpdateData(data []any) error {
 		if f, ok := v.(*float64); ok {
 			cd.Data[i] = f
 		} else if f, ok := v.(float64); ok {
-			cd.Data[i] = &f
+			val := f
+			cd.Data[i] = &val
 		} else {
 			return errors.New("invalid data type for CategoricalDataset: expected *float64 or float64")
 		}
@@ -159,23 +163,23 @@ func (cd *CategoricalDataset) Copy() Dataset {
 
 type HeatmapDataset struct {
 	BaseDataset
-	Data            []*HeatmapPoint `json:"pointData,omitempty"`
-	BackgroundColor []Color         `json:"backgroundColor,omitempty"`
+	Data            []HeatmapPoint `json:"pointData,omitempty"`
+	BackgroundColor []Color        `json:"backgroundColor,omitempty"`
 }
 
 var _ Dataset = &HeatmapDataset{}
 
 func (hd *HeatmapDataset) UpdateData(data []any) error {
-	hd.Data = make([]*HeatmapPoint, len(data))
+	hd.Data = make([]HeatmapPoint, len(data))
 	for i, v := range data {
 		if v == nil {
-			hd.Data[i] = nil
+			hd.Data[i] = HeatmapPoint{DataPoint: DataPoint{X: float64(i), Y: nil}, Value: nil}
 			continue
 		}
 		if p, ok := v.(*HeatmapPoint); ok {
-			hd.Data[i] = p
+			hd.Data[i] = *p
 		} else if p, ok := v.(HeatmapPoint); ok {
-			hd.Data[i] = &p
+			hd.Data[i] = p
 		} else {
 			return errors.New("invalid data type for HeatmapDataset: expected *HeatmapPoint or HeatmapPoint")
 		}
@@ -195,7 +199,7 @@ func (hd *HeatmapDataset) Copy() Dataset {
 	newHD := *hd
 	newHD.BaseDataset = hd.CopyBase()
 	if hd.Data != nil {
-		newHD.Data = make([]*HeatmapPoint, len(hd.Data))
+		newHD.Data = make([]HeatmapPoint, len(hd.Data))
 		copy(newHD.Data, hd.Data)
 	}
 	if hd.BackgroundColor != nil {

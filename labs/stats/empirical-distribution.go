@@ -17,22 +17,22 @@ var (
 	EmpiricalDistributionProgrammerGraph = charting.GridDataset{
 		BaseDataset: charting.BaseDataset{
 			Label:       "Programmer F(x)",
-			BorderColor: charting.ToColor(charting.ColorEmerald),
+			BorderColor: charting.ColorEmerald,
 			BorderWidth: 2,
 			Togglable:   true,
 		},
-		BackgroundColor: charting.ToColor(charting.ColorTransparent),
+		BackgroundColor: charting.ColorTransparent,
 		PointRadius:     3,
 	}
 
 	EmpiricalDistributionTesterGraph = charting.GridDataset{
 		BaseDataset: charting.BaseDataset{
 			Label:       "Tester F(x)",
-			BorderColor: charting.ToColor(charting.ColorLime),
+			BorderColor: charting.ColorLime,
 			BorderWidth: 2,
 			Togglable:   true,
 		},
-		BackgroundColor: charting.ToColor(charting.ColorTransparent),
+		BackgroundColor: charting.ColorTransparent,
 		PointRadius:     3,
 	}
 

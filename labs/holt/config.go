@@ -74,17 +74,17 @@ var (
 	TrainActualGraph = charting.CategoricalDataset{
 		BaseDataset: charting.BaseDataset{
 			Label:       "Train Data",
-			BorderColor: charting.ToColor(charting.ColorTeal),
+			BorderColor: charting.ColorTeal,
 			BorderWidth: 2,
 			Togglable:   false,
 		},
-		BackgroundColor: []charting.Color{charting.ToColor(charting.ColorTransparent)},
+		BackgroundColor: []charting.Color{charting.ColorTransparent},
 	}
 
 	TrainForecastGraph = charting.CategoricalDataset{
 		BaseDataset: charting.BaseDataset{
 			Label:       "Holt Forecast (Train)",
-			BorderColor: charting.ToColor(charting.ColorAmber),
+			BorderColor: charting.ColorAmber,
 			BorderWidth: 2,
 			Togglable:   true,
 			GraphVariables: []charting.MutableField{
@@ -93,23 +93,23 @@ var (
 				TrainMSEField,
 			},
 		},
-		BackgroundColor: []charting.Color{charting.ToColor(charting.ColorTransparent)},
+		BackgroundColor: []charting.Color{charting.ColorTransparent},
 	}
 
 	TestActualGraph = charting.CategoricalDataset{
 		BaseDataset: charting.BaseDataset{
 			Label:       "Test Data",
-			BorderColor: charting.ToColor(charting.ColorTeal),
+			BorderColor: charting.ColorTeal,
 			BorderWidth: 2,
 			Togglable:   false,
 		},
-		BackgroundColor: []charting.Color{charting.ToColor(charting.ColorTransparent)},
+		BackgroundColor: []charting.Color{charting.ColorTransparent},
 	}
 
 	TestForecastGraph = charting.CategoricalDataset{
 		BaseDataset: charting.BaseDataset{
 			Label:       "Holt Forecast (Test)",
-			BorderColor: charting.ToColor(charting.ColorRed),
+			BorderColor: charting.ColorRed,
 			BorderWidth: 2,
 			Togglable:   true,
 			GraphVariables: []charting.MutableField{
@@ -118,13 +118,13 @@ var (
 				OptimalBetaField,
 			},
 		},
-		BackgroundColor: []charting.Color{charting.ToColor(charting.ColorTransparent)},
+		BackgroundColor: []charting.Color{charting.ColorTransparent},
 	}
 
 	HeatmapGraph = charting.HeatmapDataset{
 		BaseDataset: charting.BaseDataset{
 			Label:       "Holt error vs alpha and beta",
-			BorderColor: charting.ToColor(charting.ColorTransparent),
+			BorderColor: charting.ColorTransparent,
 			BorderWidth: 0,
 			GraphVariables: []charting.MutableField{
 				OptimalMSEField,
@@ -132,7 +132,7 @@ var (
 				OptimalBetaField,
 			},
 		},
-		BackgroundColor: []charting.Color{charting.ToColor(charting.ColorBlue), charting.ToColor(charting.ColorRed)},
+		BackgroundColor: []charting.Color{charting.ColorBlue, charting.ColorRed},
 	}
 
 	TrainChart = charting.Chart{

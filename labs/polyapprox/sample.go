@@ -45,11 +45,11 @@ var (
 		BaseDataset: charting.BaseDataset{
 			Label:       "Sample Data",
 			Type:        charting.ChartTypeScatter,
-			BorderColor: charting.ToColor(charting.ColorEmerald),
+			BorderColor: charting.ColorEmerald,
 			BorderWidth: 2,
 			Togglable:   true,
 		},
-		BackgroundColor: charting.ToColor("rgba(0, 0, 0, 0.1)"),
+		BackgroundColor: "rgba(0, 0, 0, 0.1)",
 		PointRadius:     3,
 		HideLine:        true,
 	}
@@ -57,7 +57,7 @@ var (
 	sampleDataApproxGraph = charting.GridDataset{
 		BaseDataset: charting.BaseDataset{
 			Label:       "Sample Data Approximation",
-			BorderColor: charting.ToColor(charting.ColorAmber),
+			BorderColor: charting.ColorAmber,
 			BorderWidth: 2,
 			Togglable:   true,
 			GraphVariables: []charting.MutableField{
@@ -65,7 +65,7 @@ var (
 				coeffsDisplayVariable,
 			},
 		},
-		BackgroundColor: charting.ToColor("rgba(0, 0, 0, 0.1)"),
+		BackgroundColor: "rgba(0, 0, 0, 0.1)",
 		PointRadius:     0,
 	}
 

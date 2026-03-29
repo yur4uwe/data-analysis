@@ -17,11 +17,11 @@ var (
 	LinearGraph = charting.CategoricalDataset{
 		BaseDataset: charting.BaseDataset{
 			Label:       "Revenue $",
-			BorderColor: charting.ToColor(charting.ColorAmber),
+			BorderColor: charting.ColorAmber,
 			BorderWidth: 2,
 			Togglable:   true,
 		},
-		BackgroundColor: []charting.Color{charting.ToColor("rgba(37, 99, 235, 0.1)")},
+		BackgroundColor: []charting.Color{"rgba(37, 99, 235, 0.1)"},
 	}
 
 	LinearChart = charting.Chart{

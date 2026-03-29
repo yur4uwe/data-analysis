@@ -139,22 +139,33 @@ func assignPointsToCentroids(points []charting.DataPoint, centroids []charting.D
 }
 
 func updateCentroids(points []charting.DataPoint, labels []int, k uint32) []charting.DataPoint {
-	cluster_points_sums := make([]charting.DataPoint, k)
+	cluster_points_sums_x := make([]float64, k)
+	cluster_points_sums_y := make([]float64, k)
 	count_of_points_in_each_centroid := make([]int, k)
 	for i, p := range points {
-		cluster_points_sums[labels[i]].X += p.X
-		cluster_points_sums[labels[i]].Y += p.Y
+		cluster_points_sums_x[labels[i]] += p.X
+		if p.Y != nil {
+			cluster_points_sums_y[labels[i]] += *p.Y
+		}
 		count_of_points_in_each_centroid[labels[i]]++
 	}
 	centroids := make([]charting.DataPoint, k)
 	for i := range centroids {
 		if count_of_points_in_each_centroid[i] > 0 {
-			centroids[i] = charting.DataPoint{X: cluster_points_sums[i].X / float64(count_of_points_in_each_centroid[i]), Y: cluster_points_sums[i].Y / float64(count_of_points_in_each_centroid[i])}
+			y := cluster_points_sums_y[i] / float64(count_of_points_in_each_centroid[i])
+			centroids[i] = charting.DataPoint{X: cluster_points_sums_x[i] / float64(count_of_points_in_each_centroid[i]), Y: &y}
 		}
 	}
 	return centroids
 }
 
 func euclidianDist(a, b charting.DataPoint) float64 {
-	return math.Sqrt(math.Pow(a.X-b.X, 2) + math.Pow(a.Y-b.Y, 2))
+	ay, by := 0.0, 0.0
+	if a.Y != nil {
+		ay = *a.Y
+	}
+	if b.Y != nil {
+		by = *b.Y
+	}
+	return math.Sqrt(math.Pow(a.X-b.X, 2) + math.Pow(ay-by, 2))
 }

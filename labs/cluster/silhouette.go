@@ -96,8 +96,15 @@ func SilhouetteScores(points []charting.DataPoint, labels []int) []float64 {
 }
 
 func dist(a, b charting.DataPoint) float64 {
+	ay, by := 0.0, 0.0
+	if a.Y != nil {
+		ay = *a.Y
+	}
+	if b.Y != nil {
+		by = *b.Y
+	}
 	dx := a.X - b.X
-	dy := a.Y - b.Y
+	dy := ay - by
 	return math.Sqrt(dx*dx + dy*dy)
 }
 
@@ -176,7 +183,7 @@ func RenderSilhouette(req *charting.RenderRequest) (res *charting.RenderResponse
 		strlabels[i] = fmt.Sprintf("P%d", i+1)
 	}
 
-	colors := []string{
+	colors := [...]charting.Color{
 		charting.ColorBlue, charting.ColorRed, charting.ColorGreen,
 		charting.ColorViolet, charting.ColorAmber, charting.ColorCyan,
 		charting.ColorPink, charting.ColorOrange, charting.ColorTeal,
@@ -197,11 +204,11 @@ func RenderSilhouette(req *charting.RenderRequest) (res *charting.RenderResponse
 		copyChart.Datasets[datasetID] = &charting.CategoricalDataset{
 			BaseDataset: charting.BaseDataset{
 				Label:       fmt.Sprintf("Cluster %d", c),
-				BorderColor: charting.ToColor(color),
+				BorderColor: color,
 				BorderWidth: 1,
 			},
 			Data:            charting.ToFloat64PtrSlice(clusterScores[c]),
-			BackgroundColor: []charting.Color{charting.ToColor(color)},
+			BackgroundColor: []charting.Color{color},
 		}
 	}
 

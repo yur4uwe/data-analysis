@@ -48,7 +48,7 @@ func loadPoints() error {
 }
 
 func clusterData(labels []int, centroids []charting.DataPoint, chart *charting.Chart) {
-	colors := [...]string{
+	colors := [...]charting.Color{
 		charting.ColorAmber,
 		charting.ColorBlue,
 		charting.ColorCyan,
@@ -78,12 +78,12 @@ func clusterData(labels []int, centroids []charting.DataPoint, chart *charting.C
 		chart.Datasets[key] = &charting.GridDataset{
 			BaseDataset: charting.BaseDataset{
 				Label:       fmt.Sprintf("Cluster %d", cluster),
-				BorderColor: charting.ToColor(colors[cluster%len(colors)]),
+				BorderColor: colors[cluster%len(colors)],
 				BorderWidth: 2,
 			},
-			BackgroundColor: charting.ToColor(charting.ColorTransparent),
+			BackgroundColor: charting.ColorTransparent,
 			PointRadius:     4,
-			Data:            charting.ToDataPointPtrSlice(cluster_points),
+			Data:            cluster_points,
 			HideLine:        true,
 		}
 	}
@@ -95,14 +95,14 @@ func clusterData(labels []int, centroids []charting.DataPoint, chart *charting.C
 	chart.Datasets["centroids"] = &charting.GridDataset{
 		BaseDataset: charting.BaseDataset{
 			Label:       "Centroids",
-			BorderColor: charting.ToColor("#000000"),
+			BorderColor: "#000000",
 			BorderWidth: 3,
 			DataLabels:  centroidLabels,
 		},
-		BackgroundColor: charting.ToColor("#ffffff"),
+		BackgroundColor: "#ffffff",
 		PointRadius:     12,
 		PointStyle:      "star",
-		Data:            charting.ToDataPointPtrSlice(centroids),
+		Data:            centroids,
 		HideLine:        true,
 	}
 }

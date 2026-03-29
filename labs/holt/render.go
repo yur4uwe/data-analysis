@@ -193,7 +193,7 @@ func RenderError(req *charting.RenderRequest) (res *charting.RenderResponse) {
 
 			index := i*nBeta + j
 			rawValues[index] = forecastMSE
-			coords[index] = charting.DataPoint{X: alpha, Y: beta}
+			coords[index] = charting.DataPoint{X: alpha, Y: &beta}
 		}
 	}
 
