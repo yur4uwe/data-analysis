@@ -68,7 +68,7 @@ func RenderBarPlot(req *charting.RenderRequest) (res *charting.RenderResponse) {
 
 	chartCopy := charting.CopyChart(BarChart)
 
-	chartCopy.UpdateDataForDataset(BarGraphID, charting.ToAnySlice(spending.Sum))
+	chartCopy.UpdateDataForDataset(BarGraphID, charting.F64ToAny(spending.Sum))
 
 	chartCopy.Labels = spending.Category
 

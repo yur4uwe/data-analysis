@@ -12,7 +12,7 @@ import (
 	"labs/labs/holt"
 	"labs/labs/polyapprox"
 	"labs/labs/render"
-	"labs/labs/stats"
+	statslab "labs/labs/stats"
 	"labs/labs/visualization"
 
 	"github.com/wailsapp/wails/v2/pkg/runtime"
@@ -42,7 +42,7 @@ func (a *App) startup(ctx context.Context) {
 	a.registry[labs.Lab2ID] = labs.NewLab2()
 	a.registry[polyapprox.LabID] = labs.NewLab3()
 	a.registry[visualization.LabID] = labs.NewLab4()
-	a.registry[stats.LabID] = labs.NewLab5()
+	a.registry[statslab.LabID] = labs.NewLab5()
 	a.registry[cluster.LabID] = labs.NewLab6()
 	a.registry[forecasting.LabID] = labs.NewLab7()
 	a.registry[holt.LabID] = labs.NewLab8()

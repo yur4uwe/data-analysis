@@ -4,6 +4,7 @@ import (
 	"encoding/csv"
 	"fmt"
 	"io"
+	"labs/analysis"
 	"labs/charting"
 	"labs/uncsv"
 	"math"
@@ -128,7 +129,7 @@ func RenderSampleData(req *charting.RenderRequest) (res *charting.RenderResponse
 		degree = 2.0
 	}
 
-	coeffs, err := SolvePolynomialFit(points.X, points.Y, int(degree))
+	coeffs, err := analysis.SolvePolynomialFit(points.X, points.Y, int(degree))
 	if err != nil {
 		return res.NewErrorf("failed to solve polynomial fit: %v", err)
 	}
@@ -154,7 +155,7 @@ func RenderSampleData(req *charting.RenderRequest) (res *charting.RenderResponse
 	chartCopy.UpdatePointsForDataset(sampleApproximationGraphID, appeoxX, approx)
 
 	var str strings.Builder
-	str.WriteString(fmt.Sprintf("MSE: %.4e, Coefficients (", mse))
+	fmt.Fprintf(&str, "MSE: %.4e, Coefficients (", mse)
 	for i, c := range coeffs {
 		fmt.Fprintf(&str, "x%d=%.2f", i, c)
 		if i != len(coeffs)-1 {

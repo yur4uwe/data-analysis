@@ -2,6 +2,7 @@ package polyapprox
 
 import (
 	"fmt"
+	"labs/analysis"
 	"labs/charting"
 )
 
@@ -86,7 +87,7 @@ func RenderRandomPolynomialMSE(req *charting.RenderRequest) (res *charting.Rende
 	fmt.Printf("Calculating MSE for %s\n", RandomMSEID)
 	for degree := range maxDegree - 1 {
 		degree += 1
-		coeffs, err := SolvePolynomialFit(x, y, degree)
+		coeffs, err := analysis.SolvePolynomialFit(x, y, degree)
 		if err != nil {
 			fmt.Printf("Degree %d: fit failed (%s)\n", degree, err)
 			continue

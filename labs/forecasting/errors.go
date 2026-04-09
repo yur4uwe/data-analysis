@@ -2,6 +2,7 @@ package forecasting
 
 import (
 	"fmt"
+	"labs/analysis"
 	"labs/charting"
 	"math"
 	"strconv"
@@ -95,13 +96,13 @@ func RenderAlphaErrChart(req *charting.RenderRequest) (res *charting.RenderRespo
 			errors = append(errors, math.Abs(rates[i]-val))
 		}
 
-		minErr, maxErr := CalculateMinMax(errors)
+		minErr, maxErr := analysis.MinMax(errors)
 		metrics[GraphMinErrID] = append(metrics[GraphMinErrID], minErr)
 		metrics[GraphMaxErrID] = append(metrics[GraphMaxErrID], maxErr)
-		metrics[GraphAvgErrID] = append(metrics[GraphAvgErrID], CalculateMean(errors))
-		metrics[GraphMedErrID] = append(metrics[GraphMedErrID], CalculateMedian(errors))
-		metrics[GraphModErrID] = append(metrics[GraphModErrID], CalculateMode(errors, 4))
-		metrics[GraphStdErrID] = append(metrics[GraphStdErrID], CalculateStdDev(errors))
+		metrics[GraphAvgErrID] = append(metrics[GraphAvgErrID], analysis.Mean(errors))
+		metrics[GraphMedErrID] = append(metrics[GraphMedErrID], analysis.Median(errors))
+		metrics[GraphModErrID] = append(metrics[GraphModErrID], analysis.Mode(errors, 4))
+		metrics[GraphStdErrID] = append(metrics[GraphStdErrID], analysis.StdDev(errors))
 	}
 
 	copyChart := charting.CopyChart(AlphaToErrorChart)
@@ -153,13 +154,13 @@ func RenderWinSizeErrChart(req *charting.RenderRequest) (res *charting.RenderRes
 			errors = append(errors, math.Abs(rates[i]-val))
 		}
 
-		minErr, maxErr := CalculateMinMax(errors)
+		minErr, maxErr := analysis.MinMax(errors)
 		metrics[GraphMinErrID] = append(metrics[GraphMinErrID], minErr)
 		metrics[GraphMaxErrID] = append(metrics[GraphMaxErrID], maxErr)
-		metrics[GraphAvgErrID] = append(metrics[GraphAvgErrID], CalculateMean(errors))
-		metrics[GraphMedErrID] = append(metrics[GraphMedErrID], CalculateMedian(errors))
-		metrics[GraphModErrID] = append(metrics[GraphModErrID], CalculateMode(errors, 4))
-		metrics[GraphStdErrID] = append(metrics[GraphStdErrID], CalculateStdDev(errors))
+		metrics[GraphAvgErrID] = append(metrics[GraphAvgErrID], analysis.Mean(errors))
+		metrics[GraphMedErrID] = append(metrics[GraphMedErrID], analysis.Median(errors))
+		metrics[GraphModErrID] = append(metrics[GraphModErrID], analysis.Mode(errors, 4))
+		metrics[GraphStdErrID] = append(metrics[GraphStdErrID], analysis.StdDev(errors))
 	}
 
 	copyChart := charting.CopyChart(WinSizeToErrChart)

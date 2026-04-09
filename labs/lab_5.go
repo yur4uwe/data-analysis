@@ -2,7 +2,7 @@ package labs
 
 import (
 	"labs/charting"
-	"labs/labs/stats"
+	statslab "labs/labs/stats"
 )
 
 type Lab5Provider struct{}
@@ -14,11 +14,11 @@ func NewLab5() *Lab5Provider {
 }
 
 func (lp Lab5Provider) GetMetadata() charting.LabMetadata {
-	return stats.Metadata
+	return statslab.Metadata
 }
 
 func (lp Lab5Provider) GetConfig() charting.LabConfig {
-	return stats.Config
+	return statslab.Config
 }
 
 func (lp Lab5Provider) Render(req *charting.RenderRequest) *charting.RenderResponse {
@@ -27,7 +27,7 @@ func (lp Lab5Provider) Render(req *charting.RenderRequest) *charting.RenderRespo
 		return res.NewError("request is nil")
 	}
 
-	chart, ok := stats.Config.Charts[req.ChartID]
+	chart, ok := statslab.Config.Charts[req.ChartID]
 	if !ok {
 		return res.NewErrorf("chart with id %s not found", req.ChartID)
 	}

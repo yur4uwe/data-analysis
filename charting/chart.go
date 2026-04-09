@@ -117,7 +117,7 @@ func (c *Chart) GenerateLabels(precision int) {
 	if len(best) == 0 {
 		return
 	}
-	points := AnyToPointsSlice(best)
+	points := AnyToPoints(best)
 	labels := make([]string, len(points))
 	format := fmt.Sprintf("%%.%df", precision)
 	for i, p := range points {

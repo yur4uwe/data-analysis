@@ -1,7 +1,8 @@
-package stats
+package statslab
 
 import (
 	"fmt"
+	"labs/analysis"
 	"labs/charting"
 	"labs/uncsv"
 	"math"
@@ -94,17 +95,17 @@ func RenderTesterSalary(req *charting.RenderRequest) (res *charting.RenderRespon
 	}
 
 	copyChart := charting.CopyChart(TesterSalaryChart)
-	copyChart.UpdateDataForDataset(TesterSalaryBarGraphID, charting.ToAnySlice(buckets))
+	copyChart.UpdateDataForDataset(TesterSalaryBarGraphID, charting.F64ToAny(buckets))
 
 	copyChart.Labels = make([]string, len(buckets))
 	for i := range buckets {
 		copyChart.Labels[i] = fmt.Sprintf("%.0f-%.0f", x[i], x[i]+bucket_size)
 	}
 
-	avg := CalculateMean(salaries)
-	median := CalculateMedian(salaries)
-	stddev := CalculateStdDev(salaries, avg)
-	variance := CalculateVariance(salaries, avg)
+	avg := analysis.Mean(salaries)
+	median := analysis.Median(salaries)
+	stddev := analysis.StdDev(salaries)
+	variance := analysis.Variance(salaries, avg)
 	minSalary := math.Inf(1)
 	for _, s := range salaries {
 		minSalary = math.Min(minSalary, s)

@@ -43,10 +43,10 @@ var (
 		LabID,
 		"Linear and Parabolic Approximation",
 		map[string]*charting.Chart{
-			ChartTrainDataID:              &TrainDataChart,
-			ChartTestDataID:               &TestDataChart,
-			ChartOptimalLinearParamsID:    &OptimalLinearParamsChart,
-			ChartOptimalParabolicParamsID: &OptimalParabolicParamsChart,
+			ChartTrainDataID:           &TrainDataChart,
+			ChartTestDataID:            &TestDataChart,
+			ChartOptimalLinearParamsID: &OptimalLinearParamsChart,
+			// ChartOptimalParabolicParamsID: &OptimalParabolicParamsChart,
 		},
 	)
 
@@ -150,4 +150,9 @@ func loadExchageHistory() error {
 	}
 
 	return nil
+}
+
+func init() {
+	TrainDataChart.RenderFunc = RenderTrain
+	TestDataChart.RenderFunc = RenderTest
 }

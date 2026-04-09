@@ -1,6 +1,7 @@
-package stats
+package statslab
 
 import (
+	"labs/analysis"
 	"labs/charting"
 )
 
@@ -127,8 +128,8 @@ func RenderError(req *charting.RenderRequest) (res *charting.RenderResponse) {
 	for i := 1; i <= 100; i++ {
 		sliced_sample := sample[:i*n]
 
-		actual_mean := CalculateMean(sliced_sample)
-		actual_stddev := CalculateStdDev(sliced_sample, actual_mean)
+		actual_mean := analysis.Mean(sliced_sample)
+		actual_stddev := analysis.StdDev(sliced_sample)
 
 		x = append(x, float64(i*n))
 		mean_errors = append(mean_errors, (actual_mean - theoretical_mean))

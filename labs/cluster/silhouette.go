@@ -207,7 +207,7 @@ func RenderSilhouette(req *charting.RenderRequest) (res *charting.RenderResponse
 				BorderColor: color,
 				BorderWidth: 1,
 			},
-			Data:            charting.ToFloat64PtrSlice(clusterScores[c]),
+			Data:            charting.F64ToPtr(clusterScores[c]),
 			BackgroundColor: []charting.Color{color},
 		}
 	}

@@ -1,4 +1,4 @@
-package stats
+package statslab
 
 import "labs/charting"
 

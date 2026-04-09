@@ -1,6 +1,7 @@
 package holt
 
 import (
+	"labs/analysis"
 	"math"
 )
 
@@ -32,18 +33,6 @@ func HoltForecast(data []float64, alpha, beta float64) ([]float64, float64, floa
 	return forecasts, L, T
 }
 
-func MSE(data []float64, forecasts []float64) float64 {
-	if len(data) == 0 || len(data) != len(forecasts) {
-		return math.MaxFloat64
-	}
-	sum := 0.0
-	for i := range data {
-		diff := data[i] - forecasts[i]
-		sum += diff * diff
-	}
-	return sum / float64(len(data))
-}
-
 // OptimizeHolt finds optimal alpha and beta via numerical gradient descent
 func OptimizeHolt(data []float64, epochs int, lr float64) (bestAlpha, bestBeta float64) {
 	alpha := 0.5
@@ -53,11 +42,11 @@ func OptimizeHolt(data []float64, epochs int, lr float64) (bestAlpha, bestBeta f
 	for range epochs {
 		fAlphaPlus, _, _ := HoltForecast(data, alpha+h, beta)
 		fAlphaMinus, _, _ := HoltForecast(data, alpha-h, beta)
-		gradAlpha := (MSE(data, fAlphaPlus) - MSE(data, fAlphaMinus)) / (2 * h)
+		gradAlpha := (analysis.MSE(data, fAlphaPlus) - analysis.MSE(data, fAlphaMinus)) / (2 * h)
 
 		fBetaPlus, _, _ := HoltForecast(data, alpha, beta+h)
 		fBetaMinus, _, _ := HoltForecast(data, alpha, beta-h)
-		gradBeta := (MSE(data, fBetaPlus) - MSE(data, fBetaMinus)) / (2 * h)
+		gradBeta := (analysis.MSE(data, fBetaPlus) - analysis.MSE(data, fBetaMinus)) / (2 * h)
 
 		alpha -= lr * gradAlpha
 		beta -= lr * gradBeta

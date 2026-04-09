@@ -1,12 +1,10 @@
-package stats
+package statslab
 
 import (
 	"fmt"
 	"labs/charting"
 	"labs/uncsv"
-	"math"
 	"math/rand/v2"
-	"sort"
 )
 
 const (
@@ -82,47 +80,6 @@ func GenerateNormalSamples(mean, stddev float64, sampleCount int) []float64 {
 		samples[i] = rand.NormFloat64()*stddev + mean
 	}
 	return samples
-}
-
-func CalculateMean(data []float64) float64 {
-	if len(data) == 0 {
-		return 0
-	}
-	sum := 0.0
-	for _, v := range data {
-		sum += v
-	}
-	return sum / float64(len(data))
-}
-
-func CalculateStdDev(data []float64, mean float64) float64 {
-	return math.Sqrt(CalculateVariance(data, mean))
-}
-
-func CalculateVariance(data []float64, mean float64) float64 {
-	if len(data) == 0 {
-		return 0
-	}
-	sumSquares := 0.0
-	for _, v := range data {
-		diff := v - mean
-		sumSquares += diff * diff
-	}
-	return sumSquares / float64(len(data))
-}
-
-func CalculateMedian(data []float64) float64 {
-	if len(data) == 0 {
-		return 0
-	}
-	sorted := make([]float64, len(data))
-	copy(sorted, data)
-	sort.Float64s(sorted)
-	n := len(sorted)
-	if n%2 == 0 {
-		return (sorted[n/2-1] + sorted[n/2]) / 2
-	}
-	return sorted[n/2]
 }
 
 func salariesFor(position PositionType) []float64 {

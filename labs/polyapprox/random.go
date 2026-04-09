@@ -2,6 +2,7 @@ package polyapprox
 
 import (
 	"fmt"
+	"labs/analysis"
 	"labs/charting"
 	"math/rand"
 )
@@ -190,7 +191,7 @@ func RenderRandomFits(req *charting.RenderRequest) (res *charting.RenderResponse
 	chartCopy.UpdatePointsForDataset(OriginalDataID, x, origY)
 	chartCopy.UpdatePointsForDataset(NoisyDataID, x, y)
 
-	if coefs, err := SolvePolynomialFit(x, y, 1); err == nil {
+	if coefs, err := analysis.SolvePolynomialFit(x, y, 1); err == nil {
 		approx := make([]float64, 0, len(x))
 		for _, xi := range x {
 			approx = append(approx, EvaluatePolynomial(coefs, xi))
@@ -203,7 +204,7 @@ func RenderRandomFits(req *charting.RenderRequest) (res *charting.RenderResponse
 		fmt.Println("linear fit failed:", err)
 	}
 
-	if coefs, err := SolvePolynomialFit(x, y, 2); err == nil {
+	if coefs, err := analysis.SolvePolynomialFit(x, y, 2); err == nil {
 		approx := make([]float64, 0, len(x))
 		for _, xi := range x {
 			approx = append(approx, EvaluatePolynomial(coefs, xi))

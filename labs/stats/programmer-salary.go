@@ -1,7 +1,8 @@
-package stats
+package statslab
 
 import (
 	"fmt"
+	"labs/analysis"
 	"labs/charting"
 	"labs/uncsv"
 	"math"
@@ -97,17 +98,17 @@ func RenderProgrammerSalary(req *charting.RenderRequest) (res *charting.RenderRe
 	}
 
 	copyChart := charting.CopyChart(ProgrammerSalaryChart)
-	copyChart.UpdateDataForDataset(ProgrammerSalaryBarGraphID, charting.ToAnySlice(buckets))
+	copyChart.UpdateDataForDataset(ProgrammerSalaryBarGraphID, charting.F64ToAny(buckets))
 
 	copyChart.Labels = make([]string, len(buckets))
 	for i := range buckets {
 		copyChart.Labels[i] = fmt.Sprintf("%.0f-%.0f", x[i], x[i]+bucket_size)
 	}
 
-	avg := CalculateMean(salaries)
-	median := CalculateMedian(salaries)
-	stddev := CalculateStdDev(salaries, avg)
-	variance := CalculateVariance(salaries, avg)
+	avg := analysis.Mean(salaries)
+	median := analysis.Median(salaries)
+	stddev := analysis.StdDev(salaries)
+	variance := analysis.Variance(salaries, avg)
 
 	copyChart.ChartVariables[0].Label = fmt.Sprintf(
 		"Programmer salary statistics\nAverage: %.2f\nMedian: %.2f\nDeviation: %.2f\nVariance: %.2f\n",

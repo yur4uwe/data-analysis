@@ -3,6 +3,7 @@ package holt
 import (
 	"errors"
 	"fmt"
+	"labs/analysis"
 	"labs/charting"
 	"labs/uncsv"
 	"math"
@@ -75,12 +76,12 @@ func RenderHoltTest(req *charting.RenderRequest) (res *charting.RenderResponse) 
 		testTrend = bestBeta*(testLevel-prevL) + (1-bestBeta)*testTrend
 	}
 
-	testMSE := MSE(testData, testForecasts)
+	testMSE := analysis.MSE(testData, testForecasts)
 
 	copyTestChart := charting.CopyChart(TestChart)
 	copyTestChart.Labels = testDates
-	copyTestChart.UpdateDataPointsForDataset(GraphTestActualID, charting.AnyToPointsSlice(charting.ToAnySlice(testData)))
-	copyTestChart.UpdateDataPointsForDataset(GraphTestForecastID, charting.AnyToPointsSlice(charting.ToAnySlice(testForecasts)))
+	copyTestChart.UpdateDataPointsForDataset(GraphTestActualID, charting.AnyToPoints(charting.F64ToAny(testData)))
+	copyTestChart.UpdateDataPointsForDataset(GraphTestForecastID, charting.AnyToPoints(charting.F64ToAny(testForecasts)))
 
 	copyTestChart.Datasets[GraphTestForecastID].UpdateVariableLabel(0, fmt.Sprintf("Alpha Used: %.4f", bestAlpha))
 	copyTestChart.Datasets[GraphTestForecastID].UpdateVariableLabel(1, fmt.Sprintf("Beta Used: %.4f", bestBeta))
@@ -113,7 +114,7 @@ func RenderHolt(req *charting.RenderRequest) (res *charting.RenderResponse) {
 
 	bestAlpha, bestBeta := OptimizeHolt(trainData, int(epochs), lr)
 	trainForecasts, finalL, finalT := HoltForecast(trainData, bestAlpha, bestBeta)
-	trainMSE := MSE(trainData, trainForecasts)
+	trainMSE := analysis.MSE(trainData, trainForecasts)
 
 	// Save for Test phase
 	testL = finalL
@@ -124,8 +125,8 @@ func RenderHolt(req *charting.RenderRequest) (res *charting.RenderResponse) {
 
 	copyTrainChart := charting.CopyChart(TrainChart)
 	copyTrainChart.Labels = trainDates
-	copyTrainChart.UpdateDataPointsForDataset(GraphTrainActualID, charting.AnyToPointsSlice(charting.ToAnySlice(trainData)))
-	copyTrainChart.UpdateDataPointsForDataset(GraphTrainForecastID, charting.AnyToPointsSlice(charting.ToAnySlice(trainForecasts)))
+	copyTrainChart.UpdateDataPointsForDataset(GraphTrainActualID, charting.AnyToPoints(charting.F64ToAny(trainData)))
+	copyTrainChart.UpdateDataPointsForDataset(GraphTrainForecastID, charting.AnyToPoints(charting.F64ToAny(trainForecasts)))
 	copyTrainChart.Datasets[GraphTrainForecastID].UpdateVariableLabel(0, fmt.Sprintf("Optimal Alpha: %.4f", bestAlpha))
 	copyTrainChart.Datasets[GraphTrainForecastID].UpdateVariableLabel(1, fmt.Sprintf("Optimal Beta: %.4f", bestBeta))
 	copyTrainChart.Datasets[GraphTrainForecastID].UpdateVariableLabel(2, fmt.Sprintf("Train MSE: %.4e", trainMSE))
@@ -166,7 +167,7 @@ func RenderError(req *charting.RenderRequest) (res *charting.RenderResponse) {
 			beta := minBeta + step*float64(j)
 
 			forecasts, _, _ := HoltForecast(trainExchangeRateData.ExchangeRate, alpha, beta)
-			forecastMSE := MSE(trainExchangeRateData.ExchangeRate, forecasts)
+			forecastMSE := analysis.MSE(trainExchangeRateData.ExchangeRate, forecasts)
 			fmt.Printf("Alpha: %.2f, Beta: %.2f, MSE: %.4e\n", alpha, beta, forecastMSE)
 
 			if forecastMSE < bestMSE {
