@@ -71,7 +71,7 @@ type GridDataset struct {
 	BaseDataset
 	Data            []DataPoint `json:"data,omitempty"`
 	BackgroundColor Color       `json:"backgroundColor,omitempty"`
-	PointRadius     int         `json:"pointRadius,omitempty"`
+	PointRadius     int         `json:"pointRadius"`
 	PointStyle      string      `json:"pointStyle,omitempty"`
 	HideLine        bool        `json:"hideLine"`
 }

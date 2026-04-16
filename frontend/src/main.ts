@@ -13,6 +13,11 @@ import { SafeChart } from "./types";
 
 // State
 
+const stopLoading = () => {
+  const btn = document.getElementById("rerender-btn");
+  if (btn) btn.classList.remove("loading");
+};
+
 window.addEventListener("load", () => {
   GetLabs().then((labsResponse) => {
     console.log("Loaded labs:", labsResponse.labs);
@@ -34,6 +39,7 @@ window.addEventListener("load", () => {
 
 EventsOn("renderComplete", (data: charting.RenderResponse) => {
   console.log("Render complete:", data);
+  stopLoading();
   if (data.error) {
     console.error("Render error:", data.error);
     const errorContainer = document.getElementById("error-container");
@@ -70,6 +76,7 @@ EventsOn("renderComplete", (data: charting.RenderResponse) => {
 // Listen for render errors
 EventsOn("renderError", (data: charting.RenderResponse) => {
   console.error("Render error:", data);
+  stopLoading();
   const container = document.getElementById("error-container");
   if (container) {
     container.innerHTML = `<div style="color: red; padding: 20px;">Error: ${data.error.Message}</div>`;

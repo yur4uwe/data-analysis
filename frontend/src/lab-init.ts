@@ -261,6 +261,7 @@ export function InitializeChart(chartId: string) {
   }
 
   rerenderBtn.onclick = () => {
+    rerenderBtn?.classList.add("loading");
     window.dispatchEvent(new RerenderEvent(window.activeChartId!));
   };
 }

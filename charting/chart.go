@@ -54,6 +54,21 @@ func (c *Chart) Meta() ChartMetadata {
 	return meta
 }
 
+func (c *Chart) UpdateLabel(labelId string, newLabel string) {
+	found := false
+	for i := range c.ChartVariables {
+		if c.ChartVariables[i].ID == labelId {
+			c.ChartVariables[i].Label = newLabel
+			found = true
+			break
+		}
+	}
+	// If not found, panic as it's a programmer error
+	if !found {
+		panic(fmt.Errorf("label %q not found", labelId))
+	}
+}
+
 func (c *Chart) UpdatePointsForDataset(datasetId string, x, y []float64) {
 	if _, ok := c.Datasets[datasetId]; !ok {
 		panic(fmt.Errorf("dataset not found in chart"))

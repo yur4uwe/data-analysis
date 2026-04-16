@@ -122,14 +122,32 @@ export const processDatasetToPlotly = (chartType: string, labels: string[]) => (
 		const x = dataset.data.map(p => p.x);
 		const y = dataset.data.map(p => p.y);
 		
+		const radius = (dataset as any).pointRadius ?? 6;
+		const hideLine = (dataset as any).hideLine ?? false;
+		
+		let mode = "lines+markers";
+		if (chartType === "scatter" || chartType === "bubble") {
+			mode = "markers";
+		} else if (radius === 0 && hideLine) {
+			mode = "none";
+		} else if (radius === 0) {
+			mode = "lines";
+		} else if (hideLine) {
+			mode = "markers";
+		}
+
 		return {
 			...base,
 			type: "scatter",
-			mode: chartType === "scatter" ? "markers" : "lines+markers",
+			mode: mode,
 			x,
 			y: y,
 			line: { color: dataset.borderColor, width: dataset.borderWidth },
-			marker: { color: dataset.borderColor, size: chartType === "bubble" ? 10 : 6 }
+			marker: { 
+				color: dataset.borderColor, 
+				size: chartType === "bubble" ? 10 : radius,
+				opacity: radius === 0 ? 0 : 1
+			}
 		};
 	}
 

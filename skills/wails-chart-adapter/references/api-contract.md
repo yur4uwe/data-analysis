@@ -13,8 +13,9 @@ type RenderRequest struct {
 }
 ```
 ### Variable Resolution
-- `GetChartVariable(chartId, varId)`: Key is `ChartID-VariableID`.
+- `GetChartVariable(chartId, varId)`: Key is `ChartID-VariableID`. Returns `(float64, bool)`.
 - `GetGraphVariable(chartId, graphId, varId)`: Key is `DatasetID-VariableID`.
+- **Note**: All UI inputs (including selects) are received as `float64`. No `GetChartVariableString` method exists.
 
 ## RenderResponse (Go -> JSON)
 ```go
@@ -41,6 +42,28 @@ type Chart struct {
     ChartVariables []MutableField     `json:"chartVariables"`
 }
 ```
+### Chart Helper Methods
+- `UpdatePointsForDataset(id, x, y)`: For standard XY lines/scatter.
+- `UpdateDataForDataset(id, points)`: For complex types like `HeatmapPoint`.
+- `GenerateLabels(precision)`: Must be called after updating data to sync the X-axis labels.
+
+## MutableField (UI Controls)
+```go
+type MutableField struct {
+	ID      string       `json:"id"`
+	Label   string       `json:"label"`
+	Default float64      `json:"default"` // Must be float64
+	Min     float64      `json:"min"`
+	Max     float64      `json:"max"`
+	Step    float64      `json:"step"`
+	Control FieldControl `json:"control"`
+	Hint    string       `json:"hint,omitempty"`
+	Options []string     `json:"options,omitempty"` // For ControlSelect
+}
+```
+### Controls and Behavior
+- `ControlSelect`: The `Options` slice is `[]string`. The frontend sends the **index** of the selected option as a `float64`.
+- `ControlNoControl`: Used for read-only labels. To update its text dynamically during Render, modify the `Label` field in the `ChartVariables` slice of the chart copy.
 
 ## Dataset Interface
 ```go

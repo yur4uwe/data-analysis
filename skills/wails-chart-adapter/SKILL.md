@@ -28,6 +28,7 @@ Follow the standardized 3-step workflow:
 See [references/workflow.md](references/workflow.md) for a detailed checklist.
 
 ## ⚙️ Mutable Fields (UI Controls)
-- `ControlSlider`: standard range input.
-- `ControlSelect`: requires `Options` slice.
-- `ControlNoControl`: Read-only statistics (usually for dataset-level stats).
+- `ControlRange`: standard range (slider) input.
+- `ControlNumber`: numeric input field.
+- `ControlSelect`: requires `Options` slice (`[]string`). Frontend sends the **index** as `float64`.
+- `ControlNoControl`: Read-only statistics. Update by modifying `Label` on the chart copy during `Render`.

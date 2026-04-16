@@ -21,3 +21,4 @@ Uses `{X, Y, V}` coordinates for intensity mapping.
 - **Go Struct**: `HeatmapDataset`
 - **Data Field**: `pointData: []HeatmapPoint`
 - **Behavior**: `V` (value) determines the color in the heatmap.
+- **Visualization Note**: `ChartTypeHeatmap` is preferred over `ChartTypeSurface` when you need to overlay 2D optimization paths or points on top of a 3D function, as it provides a clear top-down view.

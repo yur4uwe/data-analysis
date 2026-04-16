@@ -1,7 +1,6 @@
 package optimizations
 
 import (
-	"labs/charting"
 	"math"
 	"math/rand/v2"
 )
@@ -10,11 +9,14 @@ const (
 	maxIter = 100
 )
 
-func dichotomicSearch(f func(float64) float64, a, b, tol float64) float64 {
-	eps := tol / 2
+func dichotomicSearch(f func(float64) float64, a, b, tol float64) []float64 {
+	path := []float64{(a + b) / 2}
+	// epsilon must be significantly smaller than tol
+	// typically eps < tol/2. If tol=0.01, eps=0.001 is better.
+	eps := tol / 4
 	for range maxIter {
-		if math.Abs(a-b) < eps {
-			return (a + b) / 2
+		if math.Abs(a-b) < tol {
+			break
 		}
 		p := (a+b)/2 + eps
 		q := (a+b)/2 - eps
@@ -24,18 +26,20 @@ func dichotomicSearch(f func(float64) float64, a, b, tol float64) float64 {
 		} else {
 			b = p
 		}
+		path = append(path, (a+b)/2)
 	}
-	return (a + b) / 2
+	return path
 }
 
 // randomSearchNdim finds the extremum for a function with N variables.
 // bounds is an Nx2 slice where each element is [min, max] for that dimension.
-func randomSearchNdim(f func(...float64) float64, nSamples int, bounds [][]float64) (minPoint, maxPoint []float64) {
+func randomSearchNdim(f func(...float64) float64, nSamples int, bounds [][]float64) (minPath, maxPath [][]float64) {
 	dims := len(bounds)
 	minVal := math.MaxFloat64
 	maxVal := -math.MaxFloat64
-	minPoint = make([]float64, dims)
-	maxPoint = make([]float64, dims)
+	
+	currMin := make([]float64, dims)
+	currMax := make([]float64, dims)
 
 	for range nSamples {
 		point := make([]float64, dims)
@@ -46,31 +50,45 @@ func randomSearchNdim(f func(...float64) float64, nSamples int, bounds [][]float
 		val := f(point...)
 		if val < minVal {
 			minVal = val
-			copy(minPoint, point)
+			copy(currMin, point)
+			p := make([]float64, dims)
+			copy(p, currMin)
+			minPath = append(minPath, p)
 		}
 		if val > maxVal {
 			maxVal = val
-			copy(maxPoint, point)
+			copy(currMax, point)
+			p := make([]float64, dims)
+			copy(p, currMax)
+			maxPath = append(maxPath, p)
 		}
 	}
-	return minPoint, maxPoint
+	return minPath, maxPath
 }
 
-// In the lab instructions there is an error in the slope calculation, which is fixed here
-//
-// The error is that the slope is calculated as (f(X+eps) - f(X+eps)) / eps
-//
-// It will always be zero
-func fastDescentNdim(f func(...float64) float64, initPos []float64, eps, tol, learningRate float64) []float64 {
+func isInvalid(f float64) bool {
+	return math.IsNaN(f) || math.IsInf(f, 0)
+}
+
+// fastDescentNdim returns the path of positions
+func fastDescentNdim(f func(...float64) float64, initPos []float64, eps, tol, learningRate float64) [][]float64 {
 	dims := len(initPos)
 	pos := make([]float64, dims)
 	copy(pos, initPos)
 
+	path := [][]float64{append([]float64(nil), pos...)}
+	lastVal := f(pos...)
+
+	if isInvalid(lastVal) {
+		return path // Can't start from NaN/Inf
+	}
+
 	for range maxIter {
 		grad := make([]float64, dims)
 		var gradNormSq float64
+		gradIsInvalid := false
 
-		// Calculate gradient vector
+		// Calculate gradient vector with NaN/Inf protection
 		for i := range dims {
 			original := pos[i]
 			pos[i] = original + eps
@@ -79,24 +97,49 @@ func fastDescentNdim(f func(...float64) float64, initPos []float64, eps, tol, le
 			fMinus := f(pos...)
 			pos[i] = original // restore
 
+			if isInvalid(fPlus) || isInvalid(fMinus) {
+				gradIsInvalid = true
+				break
+			}
+
 			grad[i] = (fPlus - fMinus) / (2 * eps)
 			gradNormSq += grad[i] * grad[i]
 		}
 
-		if math.Sqrt(gradNormSq) < tol {
-			return pos
+		if gradIsInvalid || math.IsNaN(gradNormSq) {
+			learningRate *= 0.5
+			if learningRate < 1e-10 {
+				break
+			}
+			continue
+		}
+
+		gradNorm := math.Sqrt(gradNormSq)
+		if gradNorm < tol {
+			break
 		}
 
 		// Trial step
 		newPos := make([]float64, dims)
-		newGrad := make([]float64, dims)
-		var dotProduct float64
-
 		for i := range dims {
 			newPos[i] = pos[i] - grad[i]*learningRate
 		}
 
+		newVal := f(newPos...)
+
+		// If we jumped into NaN/Inf or value increased, reduce LR and retry from same pos
+		if isInvalid(newVal) || newVal > lastVal {
+			learningRate *= 0.5
+			if learningRate < 1e-10 {
+				break
+			}
+			continue
+		}
+
 		// Calculate gradient at new position for adjustment
+		newGrad := make([]float64, dims)
+		var dotProduct float64
+		newGradIsInvalid := false
 		for i := range dims {
 			original := newPos[i]
 			newPos[i] = original + eps
@@ -105,25 +148,24 @@ func fastDescentNdim(f func(...float64) float64, initPos []float64, eps, tol, le
 			fMinus := f(newPos...)
 			newPos[i] = original
 
+			if isInvalid(fPlus) || isInvalid(fMinus) {
+				newGradIsInvalid = true
+				break
+			}
+
 			newGrad[i] = (fPlus - fMinus) / (2 * eps)
 			dotProduct += grad[i] * newGrad[i]
 		}
 
-		if dotProduct < 0 {
+		if newGradIsInvalid || math.IsNaN(dotProduct) || dotProduct < 0 {
 			learningRate *= 0.5
 		} else {
-			learningRate *= 1.6
+			learningRate *= 1.1
 		}
 
 		copy(pos, newPos)
+		lastVal = newVal
+		path = append(path, append([]float64(nil), pos...))
 	}
-	return pos
-}
-
-func RenderOneDimOptimization(req *charting.RenderRequest) (res *charting.RenderResponse) {
-	return res.NewError("RenderOneDimOptimization not implemented")
-}
-
-func RenderTwoDimOptimization(req *charting.RenderRequest) (res *charting.RenderResponse) {
-	return res.NewError("RenderTwoDimOptimization not implemented")
+	return path
 }
