@@ -3,6 +3,7 @@ package optimizations
 import (
 	"math"
 	"math/rand/v2"
+	"slices"
 )
 
 const (
@@ -37,7 +38,7 @@ func randomSearchNdim(f func(...float64) float64, nSamples int, bounds [][]float
 	dims := len(bounds)
 	minVal := math.MaxFloat64
 	maxVal := -math.MaxFloat64
-	
+
 	currMin := make([]float64, dims)
 	currMax := make([]float64, dims)
 
@@ -70,11 +71,57 @@ func isInvalid(f float64) bool {
 	return math.IsNaN(f) || math.IsInf(f, 0)
 }
 
-// fastDescentNdim returns the path of positions
-func fastDescentNdim(f func(...float64) float64, initPos []float64, eps, tol, learningRate float64) [][]float64 {
+func gradient(f func(...float64) float64, pos []float64, eps float64) ([]float64, bool) {
+	dims := len(pos)
+	grad := make([]float64, dims)
+	gradIsInvalid := false
+
+	// Calculate gradient vector with NaN/Inf protection
+	for i := range dims {
+		original := pos[i]
+		pos[i] = original + eps
+		fPlus := f(pos...)
+		pos[i] = original - eps
+		fMinus := f(pos...)
+		pos[i] = original // restore
+
+		if isInvalid(fPlus) || isInvalid(fMinus) {
+			gradIsInvalid = true
+			break
+		}
+
+		grad[i] = (fPlus - fMinus) / (2 * eps)
+	}
+
+	return grad, gradIsInvalid
+}
+
+func dot(a, b []float64) float64 {
+	if len(a) != len(b) {
+		panic("dot: slices must be of equal length")
+	}
+	res := 0.0
+	for i := range a {
+		res += a[i] * b[i]
+	}
+	return res
+}
+
+// fastDescentNdim returns the path of positions within given bounds
+func fastDescentNdim(f func(...float64) float64, initPos []float64, bounds [][]float64, eps, tol, learningRate float64) [][]float64 {
 	dims := len(initPos)
 	pos := make([]float64, dims)
 	copy(pos, initPos)
+
+	// Initial clamp
+	for i := range dims {
+		if pos[i] < bounds[i][0] {
+			pos[i] = bounds[i][0]
+		}
+		if pos[i] > bounds[i][1] {
+			pos[i] = bounds[i][1]
+		}
+	}
 
 	path := [][]float64{append([]float64(nil), pos...)}
 	lastVal := f(pos...)
@@ -84,29 +131,8 @@ func fastDescentNdim(f func(...float64) float64, initPos []float64, eps, tol, le
 	}
 
 	for range maxIter {
-		grad := make([]float64, dims)
-		var gradNormSq float64
-		gradIsInvalid := false
-
-		// Calculate gradient vector with NaN/Inf protection
-		for i := range dims {
-			original := pos[i]
-			pos[i] = original + eps
-			fPlus := f(pos...)
-			pos[i] = original - eps
-			fMinus := f(pos...)
-			pos[i] = original // restore
-
-			if isInvalid(fPlus) || isInvalid(fMinus) {
-				gradIsInvalid = true
-				break
-			}
-
-			grad[i] = (fPlus - fMinus) / (2 * eps)
-			gradNormSq += grad[i] * grad[i]
-		}
-
-		if gradIsInvalid || math.IsNaN(gradNormSq) {
+		grad, gradIsInvalid := gradient(f, pos, eps)
+		if gradIsInvalid {
 			learningRate *= 0.5
 			if learningRate < 1e-10 {
 				break
@@ -114,15 +140,25 @@ func fastDescentNdim(f func(...float64) float64, initPos []float64, eps, tol, le
 			continue
 		}
 
-		gradNorm := math.Sqrt(gradNormSq)
-		if gradNorm < tol {
+		if dot(grad, grad) < tol*tol {
 			break
 		}
 
-		// Trial step
+		// Trial step with clamping
 		newPos := make([]float64, dims)
 		for i := range dims {
 			newPos[i] = pos[i] - grad[i]*learningRate
+			if newPos[i] < bounds[i][0] {
+				newPos[i] = bounds[i][0]
+			}
+			if newPos[i] > bounds[i][1] {
+				newPos[i] = bounds[i][1]
+			}
+		}
+
+		// If new clamped positions is the same as the old, exit
+		if slices.Equal(newPos, pos) {
+			break
 		}
 
 		newVal := f(newPos...)
@@ -137,30 +173,17 @@ func fastDescentNdim(f func(...float64) float64, initPos []float64, eps, tol, le
 		}
 
 		// Calculate gradient at new position for adjustment
-		newGrad := make([]float64, dims)
-		var dotProduct float64
-		newGradIsInvalid := false
-		for i := range dims {
-			original := newPos[i]
-			newPos[i] = original + eps
-			fPlus := f(newPos...)
-			newPos[i] = original - eps
-			fMinus := f(newPos...)
-			newPos[i] = original
-
-			if isInvalid(fPlus) || isInvalid(fMinus) {
-				newGradIsInvalid = true
-				break
-			}
-
-			newGrad[i] = (fPlus - fMinus) / (2 * eps)
-			dotProduct += grad[i] * newGrad[i]
-		}
-
-		if newGradIsInvalid || math.IsNaN(dotProduct) || dotProduct < 0 {
+		newGrad, newGradIsInvalid := gradient(f, newPos, eps)
+		if newGradIsInvalid {
 			learningRate *= 0.5
 		} else {
-			learningRate *= 1.1
+			dotProduct := dot(grad, newGrad)
+			if dotProduct < 0 {
+				learningRate *= 0.5
+			} else {
+				learningRate *= 1.1 // Smaller than 1.6 in original code
+				// It was producing NaN/Inf values in the gradient vector
+			}
 		}
 
 		copy(pos, newPos)

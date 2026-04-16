@@ -83,9 +83,9 @@ func RenderHoltTest(req *charting.RenderRequest) (res *charting.RenderResponse) 
 	copyTestChart.UpdateDataPointsForDataset(GraphTestActualID, charting.AnyToPoints(charting.F64ToAny(testData)))
 	copyTestChart.UpdateDataPointsForDataset(GraphTestForecastID, charting.AnyToPoints(charting.F64ToAny(testForecasts)))
 
-	copyTestChart.Datasets[GraphTestForecastID].UpdateVariableLabel(0, fmt.Sprintf("Alpha Used: %.4f", bestAlpha))
-	copyTestChart.Datasets[GraphTestForecastID].UpdateVariableLabel(1, fmt.Sprintf("Beta Used: %.4f", bestBeta))
-	copyTestChart.Datasets[GraphTestForecastID].UpdateVariableLabel(2, fmt.Sprintf("Test MSE: %.4e", testMSE))
+	copyTestChart.Datasets[GraphTestForecastID].UpdateVariableLabel(DisplayOptimalAlphaID, fmt.Sprintf("Alpha Used: %.4f", bestAlpha))
+	copyTestChart.Datasets[GraphTestForecastID].UpdateVariableLabel(DisplayOptimalBetaID, fmt.Sprintf("Beta Used: %.4f", bestBeta))
+	copyTestChart.Datasets[GraphTestForecastID].UpdateVariableLabel(DisplayTestMSEID, fmt.Sprintf("Test MSE: %.4e", testMSE))
 
 	res = charting.NewRenderResponse()
 	res.AddChart(copyTestChart.ID, &copyTestChart)
@@ -127,9 +127,9 @@ func RenderHolt(req *charting.RenderRequest) (res *charting.RenderResponse) {
 	copyTrainChart.Labels = trainDates
 	copyTrainChart.UpdateDataPointsForDataset(GraphTrainActualID, charting.AnyToPoints(charting.F64ToAny(trainData)))
 	copyTrainChart.UpdateDataPointsForDataset(GraphTrainForecastID, charting.AnyToPoints(charting.F64ToAny(trainForecasts)))
-	copyTrainChart.Datasets[GraphTrainForecastID].UpdateVariableLabel(0, fmt.Sprintf("Optimal Alpha: %.4f", bestAlpha))
-	copyTrainChart.Datasets[GraphTrainForecastID].UpdateVariableLabel(1, fmt.Sprintf("Optimal Beta: %.4f", bestBeta))
-	copyTrainChart.Datasets[GraphTrainForecastID].UpdateVariableLabel(2, fmt.Sprintf("Train MSE: %.4e", trainMSE))
+	copyTrainChart.Datasets[GraphTrainForecastID].UpdateVariableLabel(DisplayOptimalAlphaID, fmt.Sprintf("Optimal Alpha: %.4f", bestAlpha))
+	copyTrainChart.Datasets[GraphTrainForecastID].UpdateVariableLabel(DisplayOptimalBetaID, fmt.Sprintf("Optimal Beta: %.4f", bestBeta))
+	copyTrainChart.Datasets[GraphTrainForecastID].UpdateVariableLabel(DisplayTrainMSEID, fmt.Sprintf("Train MSE: %.4e", trainMSE))
 
 	res = charting.NewRenderResponse()
 	res.AddChart(copyTrainChart.ID, &copyTrainChart)
@@ -198,9 +198,9 @@ func RenderError(req *charting.RenderRequest) (res *charting.RenderResponse) {
 	copyChart := charting.CopyChart(OptimalChart)
 	copyChart.UpdateDataForDataset(GraphErrHeatmapID, heatmapData)
 
-	copyChart.Datasets[GraphErrHeatmapID].UpdateVariableLabel(0, fmt.Sprintf("Optimal Alpha: %.4f", bestAlpha))
-	copyChart.Datasets[GraphErrHeatmapID].UpdateVariableLabel(1, fmt.Sprintf("Optimal Beta: %.4f", bestBeta))
-	copyChart.Datasets[GraphErrHeatmapID].UpdateVariableLabel(2, fmt.Sprintf("Optimal MSE: %.4e", bestMSE))
+	copyChart.Datasets[GraphErrHeatmapID].UpdateVariableLabel(DisplayOptimalAlphaID, fmt.Sprintf("Optimal Alpha: %.4f", bestAlpha))
+	copyChart.Datasets[GraphErrHeatmapID].UpdateVariableLabel(DisplayOptimalBetaID, fmt.Sprintf("Optimal Beta: %.4f", bestBeta))
+	copyChart.Datasets[GraphErrHeatmapID].UpdateVariableLabel(DisplayOptimalMSEID, fmt.Sprintf("Optimal MSE: %.4e", bestMSE))
 
 	res = charting.NewRenderResponse()
 	res.AddChart(copyChart.ID, &copyChart)

@@ -163,7 +163,7 @@ func RenderSampleData(req *charting.RenderRequest) (res *charting.RenderResponse
 		}
 	}
 	str.WriteString(")")
-	chartCopy.Datasets[sampleApproximationGraphID].UpdateVariableLabel(1, str.String())
+	chartCopy.Datasets[sampleApproximationGraphID].UpdateVariableLabel(coeffsDisplayID, str.String())
 
 	return &charting.RenderResponse{
 		Charts: map[string]charting.Chart{

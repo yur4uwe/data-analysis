@@ -13,8 +13,8 @@ export const formatScientific = (value: number | string): string => {
 	return num.toLocaleString(undefined, { maximumFractionDigits: 4 });
 };
 
-export const defaultPlotlyLayout = (title: string, chartType: string): Partial<PlotlyLayout> => {
-	const is3D = chartType === "heatmap" || chartType === "surface" || chartType.includes("3d");
+export const defaultPlotlyLayout = (title: string, chartType: string, chartConfig?: charting.Chart): Partial<PlotlyLayout> => {
+	const is3D = chartType === "surface" || chartType.includes("3d");
 	
 	const layout: any = {
 		title: {
@@ -23,25 +23,25 @@ export const defaultPlotlyLayout = (title: string, chartType: string): Partial<P
 			pad: { t: 10, b: 20 }
 		},
 		autosize: true,
-		margin: { l: 60, r: 30, t: 60, b: 60, pad: 4 },
+		margin: { l: 80, r: 50, t: 80, b: 80, pad: 10 },
 		paper_bgcolor: "rgba(0,0,0,0)",
 		plot_bgcolor: "rgba(0,0,0,0)",
 		font: { family: "Nunito, sans-serif", size: 12, color: "#000000" },
-		showlegend: !chartType.includes("heatmap"),
+		showlegend: !chartType.includes("heatmap") && !chartType.includes("surface"),
 		legend: {
 			orientation: "h",
 			yanchor: "bottom",
-			y: -0.2,
+			y: -0.3,
 			xanchor: "center",
 			x: 0.5
 		}
 	};
 
-	if (is3D) {
+	if (is3D && chartConfig) {
 		layout.scene = {
-			xaxis: { title: "X" },
-			yaxis: { title: "Y" },
-			zaxis: { title: "Value" }
+			xaxis: { title: { text: chartConfig.xAxisLabel || "X" } },
+			yaxis: { title: { text: chartConfig.yAxisLabel || "Y" } },
+			zaxis: { title: { text: "Value" } }
 		};
 	}
 
@@ -62,7 +62,10 @@ export function newPlotlyAxes(chartConfig: charting.Chart) {
 	return {
 		xaxis: {
 			type: mapAxisType(chartConfig.xAxisConfig),
-			title: chartConfig.xAxisLabel || "X",
+			title: { 
+				text: chartConfig.xAxisLabel || "X",
+				font: { size: 14, family: "Nunito, sans-serif" }
+			},
 			showgrid: true,
 			zeroline: true,
 			gridcolor: "rgba(0,0,0,0.1)",
@@ -72,14 +75,17 @@ export function newPlotlyAxes(chartConfig: charting.Chart) {
 		},
 		yaxis: {
 			type: mapAxisType(chartConfig.yAxisConfig),
-			title: chartConfig.yAxisLabel || "Y",
+			title: { 
+				text: chartConfig.yAxisLabel || "Y",
+				font: { size: 14, family: "Nunito, sans-serif" }
+			},
 			showgrid: true,
 			zeroline: true,
 			gridcolor: "rgba(0,0,0,0.1)",
 			zerolinecolor: "#000000",
 			zerolinewidth: 2,
-			tickfont: { size: 12 },
-			tickformat: chartConfig.yAxisConfig === "logarithmic" ? undefined : ".2e"
+			tickfont: { size: 12 }
+			// Removed tickformat ".2e" to avoid forcing scientific notation if not needed
 		}
 	};
 }

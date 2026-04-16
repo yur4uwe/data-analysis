@@ -52,8 +52,8 @@ export function renderChartInto(chartConfig: SafeChart, container: HTMLElement) 
   const traces = Object.values(chartConfig.datasets || {}).map(processDatasetToPlotly(chartType, labels));
 
   const layout = {
-    ...defaultPlotlyLayout(chartConfig.title || "", chartType),
-    ...newPlotlyAxes(chartConfig)
+    ...defaultPlotlyLayout(chartConfig.title || "", chartType, chartConfig as any),
+    ...newPlotlyAxes(chartConfig as any)
   };
 
   const config: Partial<Plotly.Config> = {

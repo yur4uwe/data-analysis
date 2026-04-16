@@ -225,7 +225,7 @@ func loadExchageHistory() error {
 	return d.Decode(exchangeRateData)
 }
 
-func updateGraphStats(dataset charting.Dataset, rates []float64, forecast []*float64) {
+func updateGraphStats(graphID string, dataset charting.Dataset, rates []float64, forecast []*float64) {
 	errors := make([]float64, 0)
 	for i := 0; i < len(rates) && i < len(forecast); i++ {
 		if forecast[i] == nil {
@@ -244,12 +244,12 @@ func updateGraphStats(dataset charting.Dataset, rates []float64, forecast []*flo
 	modErr := analysis.Mode(errors, 4)
 	stdErr := analysis.StdDev(errors)
 
-	dataset.UpdateVariableLabel(0, fmt.Sprintf("Min Error: %.4f", minErr))
-	dataset.UpdateVariableLabel(1, fmt.Sprintf("Max Error: %.4f", maxErr))
-	dataset.UpdateVariableLabel(2, fmt.Sprintf("Avg Error: %.4f", avgErr))
-	dataset.UpdateVariableLabel(3, fmt.Sprintf("Median Error: %.4f", medErr))
-	dataset.UpdateVariableLabel(4, fmt.Sprintf("Mode Error: %.4f", modErr))
-	dataset.UpdateVariableLabel(5, fmt.Sprintf("Std Dev: %.4f", stdErr))
+	dataset.UpdateVariableLabel(graphID+"-"+DisplayMinErrorID, fmt.Sprintf("Min Error: %.4f", minErr))
+	dataset.UpdateVariableLabel(graphID+"-"+DisplayMaxErrorID, fmt.Sprintf("Max Error: %.4f", maxErr))
+	dataset.UpdateVariableLabel(graphID+"-"+DisplayAvgErrorID, fmt.Sprintf("Avg Error: %.4f", avgErr))
+	dataset.UpdateVariableLabel(graphID+"-"+DisplayMedianErrorID, fmt.Sprintf("Median Error: %.4f", medErr))
+	dataset.UpdateVariableLabel(graphID+"-"+DisplayModeErrorID, fmt.Sprintf("Mode Error: %.4f", modErr))
+	dataset.UpdateVariableLabel(graphID+"-"+DisplayStdDevErrorID, fmt.Sprintf("Std Dev: %.4f", stdErr))
 }
 
 func RenderForecasting(req *charting.RenderRequest) (res *charting.RenderResponse) {
@@ -286,7 +286,7 @@ func RenderForecasting(req *charting.RenderRequest) (res *charting.RenderRespons
 		tatForecast[i] = &val
 	}
 	copyChart.UpdateDataPointsForDataset(GraphTomorrowAsTodayID, charting.F64PtrToPoints(tatForecast))
-	updateGraphStats(copyChart.Datasets[GraphTomorrowAsTodayID], rates, tatForecast)
+	updateGraphStats(GraphTomorrowAsTodayID, copyChart.Datasets[GraphTomorrowAsTodayID], rates, tatForecast)
 
 	// 3. Trend
 	trendForecast := make([]*float64, n)
@@ -295,7 +295,7 @@ func RenderForecasting(req *charting.RenderRequest) (res *charting.RenderRespons
 		trendForecast[i] = &val
 	}
 	copyChart.UpdateDataPointsForDataset(GraphTrendID, charting.F64PtrToPoints(trendForecast))
-	updateGraphStats(copyChart.Datasets[GraphTrendID], rates, trendForecast)
+	updateGraphStats(GraphTrendID, copyChart.Datasets[GraphTrendID], rates, trendForecast)
 
 	// 4. Relative Trend
 	relTrendForecast := make([]*float64, n)
@@ -304,7 +304,7 @@ func RenderForecasting(req *charting.RenderRequest) (res *charting.RenderRespons
 		relTrendForecast[i] = &val
 	}
 	copyChart.UpdateDataPointsForDataset(GraphRelativeTrendID, charting.F64PtrToPoints(relTrendForecast))
-	updateGraphStats(copyChart.Datasets[GraphRelativeTrendID], rates, relTrendForecast)
+	updateGraphStats(GraphRelativeTrendID, copyChart.Datasets[GraphRelativeTrendID], rates, relTrendForecast)
 
 	simpleAvgForecast := make([]*float64, n)
 	for i := range n {
@@ -312,7 +312,7 @@ func RenderForecasting(req *charting.RenderRequest) (res *charting.RenderRespons
 		simpleAvgForecast[i] = &val
 	}
 	copyChart.UpdateDataPointsForDataset(GraphSimpleAvgID, charting.F64PtrToPoints(simpleAvgForecast))
-	updateGraphStats(copyChart.Datasets[GraphSimpleAvgID], rates, simpleAvgForecast)
+	updateGraphStats(GraphSimpleAvgID, copyChart.Datasets[GraphSimpleAvgID], rates, simpleAvgForecast)
 
 	// 5. Sliding Average
 	slidingForecast := make([]*float64, n)
@@ -327,7 +327,7 @@ func RenderForecasting(req *charting.RenderRequest) (res *charting.RenderRespons
 	copyChart.UpdateDataPointsForDataset(GraphSlidingAvgID, charting.F64PtrToPoints(slidingForecast))
 	slidingDs := copyChart.Datasets[GraphSlidingAvgID]
 	slidingDs.UpdateLabel(fmt.Sprintf("Sliding Avg (n=%d)", win))
-	updateGraphStats(slidingDs, rates, slidingForecast)
+	updateGraphStats(GraphSlidingAvgID, slidingDs, rates, slidingForecast)
 
 	// 6. Exponential Smoothing
 	expForecast := make([]*float64, n)
@@ -340,7 +340,7 @@ func RenderForecasting(req *charting.RenderRequest) (res *charting.RenderRespons
 	copyChart.UpdateDataPointsForDataset(GraphExponentialAvgID, charting.F64PtrToPoints(expForecast))
 	expDs := copyChart.Datasets[GraphExponentialAvgID]
 	expDs.UpdateLabel(fmt.Sprintf("Exp. Smoothing (α=%.2f)", alpha))
-	updateGraphStats(expDs, rates, expForecast)
+	updateGraphStats(GraphExponentialAvgID, expDs, rates, expForecast)
 
 	res = charting.NewRenderResponse()
 	res.AddChart(copyChart.ID, &copyChart)
@@ -408,12 +408,12 @@ func RenderOptimal(req *charting.RenderRequest) (res *charting.RenderResponse) {
 	copyChart.UpdateDataPointsForDataset(GraphSlidingAvgID, charting.F64PtrToPoints(bestSlidingForecast))
 	slidingDs := copyChart.Datasets[GraphSlidingAvgID]
 	slidingDs.UpdateLabel(fmt.Sprintf("Opt. Sliding Avg (n=%d, MSE=%.4f)", bestWin, minWinMSE))
-	updateGraphStats(slidingDs, rates, bestSlidingForecast)
+	updateGraphStats(GraphSlidingAvgID, slidingDs, rates, bestSlidingForecast)
 
 	copyChart.UpdateDataPointsForDataset(GraphExponentialAvgID, charting.F64PtrToPoints(bestExpForecast))
 	expDs := copyChart.Datasets[GraphExponentialAvgID]
 	expDs.UpdateLabel(fmt.Sprintf("Opt. Exp. Smoothing (α=%.2f, MSE=%.4f)", bestAlpha, minAlphaMSE))
-	updateGraphStats(expDs, rates, bestExpForecast)
+	updateGraphStats(GraphExponentialAvgID, expDs, rates, bestExpForecast)
 
 	res = charting.NewRenderResponse()
 	res.AddChart(ChartOptimalParametersID, &copyChart)

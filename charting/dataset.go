@@ -12,7 +12,7 @@ type HeatmapPoint struct {
 type Dataset interface {
 	UpdateData([]any) // panics if data is not of the correct type
 	UpdateLabel(string)
-	UpdateVariableLabel(int, string)
+	UpdateVariableLabel(id string, label string)
 	GetData() []any
 	GetFields() []MutableField
 	Copy() Dataset
@@ -43,11 +43,14 @@ func (bd *BaseDataset) GetFields() []MutableField {
 	return bd.GraphVariables
 }
 
-func (bd *BaseDataset) UpdateVariableLabel(idx int, str string) {
-	if idx < 0 || idx >= len(bd.GraphVariables) {
-		panic("index out of range")
+func (bd *BaseDataset) UpdateVariableLabel(id string, label string) {
+	for i := range bd.GraphVariables {
+		if bd.GraphVariables[i].ID == id {
+			bd.GraphVariables[i].Label = label
+			return
+		}
 	}
-	bd.GraphVariables[idx].Label = str
+	panic(fmt.Sprintf("variable ID %s not found in dataset", id))
 }
 
 func (bd *BaseDataset) UpdateLabel(new_label string) {

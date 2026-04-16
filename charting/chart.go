@@ -54,7 +54,7 @@ func (c *Chart) Meta() ChartMetadata {
 	return meta
 }
 
-func (c *Chart) UpdateLabel(labelId string, newLabel string) {
+func (c *Chart) UpdateVariableLabel(labelId string, newLabel string) {
 	found := false
 	for i := range c.ChartVariables {
 		if c.ChartVariables[i].ID == labelId {
