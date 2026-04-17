@@ -15,7 +15,7 @@ export const formatScientific = (value: number | string): string => {
 
 export const defaultPlotlyLayout = (title: string, chartType: string, chartConfig?: charting.Chart): Partial<PlotlyLayout> => {
 	const is3D = chartType === "surface" || chartType.includes("3d");
-	
+
 	const layout: any = {
 		title: {
 			text: title,
@@ -62,7 +62,7 @@ export function newPlotlyAxes(chartConfig: charting.Chart) {
 	return {
 		xaxis: {
 			type: mapAxisType(chartConfig.xAxisConfig),
-			title: { 
+			title: {
 				text: chartConfig.xAxisLabel || "X",
 				font: { size: 14, family: "Nunito, sans-serif" }
 			},
@@ -75,7 +75,7 @@ export function newPlotlyAxes(chartConfig: charting.Chart) {
 		},
 		yaxis: {
 			type: mapAxisType(chartConfig.yAxisConfig),
-			title: { 
+			title: {
 				text: chartConfig.yAxisLabel || "Y",
 				font: { size: 14, family: "Nunito, sans-serif" }
 			},
@@ -102,9 +102,9 @@ export const processDatasetToPlotly = (chartType: string, labels: string[]) => (
 		const validData = dataset.pointData.filter(p => p !== null && p.y !== null);
 		const xValues = Array.from(new Set(validData.map(p => p.x))).sort((a, b) => a - b);
 		const yValues = Array.from(new Set(validData.map(p => p.y as number))).sort((a, b) => a - b);
-		
+
 		const zMatrix: (number | null)[][] = yValues.map(() => xValues.map(() => null));
-		
+
 		validData.forEach(p => {
 			const xi = xValues.indexOf(p.x);
 			const yi = yValues.indexOf(p.y as number);
@@ -127,10 +127,10 @@ export const processDatasetToPlotly = (chartType: string, labels: string[]) => (
 	if (isGridDataset(dataset)) {
 		const x = dataset.data.map(p => p.x);
 		const y = dataset.data.map(p => p.y);
-		
+
 		const radius = (dataset as any).pointRadius ?? 6;
 		const hideLine = (dataset as any).hideLine ?? false;
-		
+
 		let mode = "lines+markers";
 		if (chartType === "scatter" || chartType === "bubble") {
 			mode = "markers";
@@ -149,8 +149,8 @@ export const processDatasetToPlotly = (chartType: string, labels: string[]) => (
 			x,
 			y: y,
 			line: { color: dataset.borderColor, width: dataset.borderWidth },
-			marker: { 
-				color: dataset.borderColor, 
+			marker: {
+				color: dataset.borderColor,
 				size: chartType === "bubble" ? 10 : radius,
 				opacity: radius === 0 ? 0 : 1
 			}
@@ -162,16 +162,16 @@ export const processDatasetToPlotly = (chartType: string, labels: string[]) => (
 			return {
 				...base,
 				type: "pie",
-				labels: labels.length > 0 ? labels : dataset.data.map((_, i) => `Item ${i+1}`),
+				labels: labels.length > 0 ? labels : dataset.data.map((_, i) => `Item ${i + 1}`),
 				values: dataset.data.filter(v => v !== null),
 				marker: { colors: (dataset as any).backgroundColor }
 			};
 		}
-		
+
 		return {
 			...base,
 			type: "bar",
-			x: labels.length > 0 ? labels : dataset.data.map((_, i) => `Item ${i+1}`),
+			x: labels.length > 0 ? labels : dataset.data.map((_, i) => `Item ${i + 1}`),
 			y: dataset.data,
 			marker: { color: dataset.borderColor }
 		};

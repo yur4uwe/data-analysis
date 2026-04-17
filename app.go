@@ -6,6 +6,7 @@ import (
 
 	"labs/charting"
 	"labs/labs"
+	neuron "labs/labs/1-neuron"
 	"labs/labs/cluster"
 	"labs/labs/forecasting"
 	forecastinglinparab "labs/labs/forecasting-lin-parab"
@@ -49,6 +50,7 @@ func (a *App) startup(ctx context.Context) {
 	a.registry[holt.LabID] = charting.NewProvider(holt.Config)
 	a.registry[optimizations.LabID] = charting.NewProvider(optimizations.Config)
 	a.registry[forecastinglinparab.LabID] = charting.NewProvider(forecastinglinparab.LinParabConfig)
+	a.registry[neuron.LabID] = charting.NewProvider(neuron.Config)
 
 	fmt.Printf("Registered %d labs\n", len(a.registry))
 }

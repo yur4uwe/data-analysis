@@ -15,6 +15,11 @@ type RenderRequest struct {
 	DatasetVisibility map[string]bool               `json:"DatasetVisibility"` // what datasets are visible on the graph (to alleviate the load)
 }
 
+func (rr *RenderRequest) GetVariable(variableId string) float64 {
+	val, _ := rr.GetChartVariable(rr.ChartID, variableId)
+	return val
+}
+
 func (rr *RenderRequest) GetChartVariable(chartId string, variableId string) (float64, bool) {
 	if chartId == "" || variableId == "" {
 		return 0, false
