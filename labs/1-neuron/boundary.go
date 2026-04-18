@@ -62,6 +62,11 @@ var (
 			Label:       "Decision Boundary",
 			BorderColor: charting.ColorAmber,
 			BorderWidth: 4,
+			GraphVariables: []charting.MutableField{
+				TestXField,
+				TestYField,
+				PredictionField,
+			},
 		},
 		HideLine:    false,
 		PointRadius: 0,
@@ -91,8 +96,18 @@ func RenderBoundary(req *charting.RenderRequest) (res *charting.RenderResponse) 
 	finalW := trainRes.WeightsHistory[len(trainRes.WeightsHistory)-1]
 	finalB := trainRes.BiasHistory[len(trainRes.BiasHistory)-1]
 
+	// Prediction logic for interactive testing (using GraphVariables)
+	testX, _ := req.GetGraphVariable(BoundaryChartID, GraphBoundaryID, VarTestXID)
+	testY, _ := req.GetGraphVariable(BoundaryChartID, GraphBoundaryID, VarTestYID)
+	forwardSingle := newForward(act, finalW, finalB)
+	testConf := forwardSingle([]float64{testX, testY})
+
+	predText := fmt.Sprintf("Point (%.2f, %.2f) -> Confidence: %.4f (Class %d)",
+		testX, testY, testConf, map[bool]int{testConf >= 0.5: 1, testConf < 0.5: 0}[testConf >= 0.5])
+	chartCopy.Datasets[GraphBoundaryID].UpdateVariableLabel(VarPredictionID, predText)
+
 	var sb strings.Builder
-	fmt.Fprintf(&sb, "Formula: %s(%.4fx + %.4fy + %.4f)", names[actIdx], finalW[0], finalW[1], finalB)
+	fmt.Fprintf(&sb, "Epochs: %d | Test Acc: %.2f%% | Formula: %s(%.4fx + %.4fy + %.4f)", trainRes.EpochsTrained, trainRes.TestAccuracy*100, names[actIdx], finalW[0], finalW[1], finalB)
 	chartCopy.UpdateVariableLabel(VarFormulaID, sb.String())
 	fmt.Println(sb.String())
 
@@ -102,14 +117,19 @@ func RenderBoundary(req *charting.RenderRequest) (res *charting.RenderResponse) 
 	heatPoints := make([]any, 0)
 	for i := 0; i <= precision; i++ {
 		gx := minX + (maxX-minX)*float64(i)/float64(precision)
+
+		forward := newForward(act, finalW, finalB)
 		for j := 0; j <= precision; j++ {
 			gy := minY + (maxY-minY)*float64(j)/float64(precision)
-			z := finalW[0]*gx + finalW[1]*gy + finalB
-			conf := act(z)
+			conf := forward([]float64{gx, gy})
 
 			// Safety: Plotly/JSON cannot handle NaN or Inf
 			if math.IsNaN(conf) || math.IsInf(conf, 0) {
-				conf = 0.5 // Default to uncertain
+				heatPoints = append(heatPoints, &charting.HeatmapPoint{
+					DataPoint: charting.DataPoint{X: gx, Y: &gy},
+					Value:     nil, // This creates a visual gap
+				})
+				continue
 			}
 
 			heatPoints = append(heatPoints, &charting.HeatmapPoint{

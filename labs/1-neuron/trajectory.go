@@ -81,7 +81,7 @@ func RenderTrajectory(req *charting.RenderRequest) (res *charting.RenderResponse
 	finalW := trainRes.WeightsHistory[len(trainRes.WeightsHistory)-1]
 	finalB := trainRes.BiasHistory[len(trainRes.BiasHistory)-1]
 	var sb strings.Builder
-	fmt.Fprintf(&sb, "Formula: %s(%.4fx + %.4fy + %.4f)", names[actIdx], finalW[0], finalW[1], finalB)
+	fmt.Fprintf(&sb, "Epochs: %d | Test Acc: %.2f%% | Formula: %s(%.4fx + %.4fy + %.4f)", trainRes.EpochsTrained, trainRes.TestAccuracy*100, names[actIdx], finalW[0], finalW[1], finalB)
 	chartCopy.UpdateVariableLabel(VarFormulaID, sb.String())
 
 	// 2. Determine Weight Range from History
@@ -146,10 +146,10 @@ func RenderTrajectory(req *charting.RenderRequest) (res *charting.RenderResponse
 		for j := 0; j <= precision; j++ {
 			gw2 := safe(roundTo(minW2+float64(j)*step2, step2/1000))
 
+			forward := newForward(act, []float64{gw1, gw2}, finalB)
 			var totalLoss float64
 			for k := range trainData.X {
-				z := gw1*trainData.X[k] + gw2*trainData.Y[k] + finalB
-				pred := act(z)
+				pred := forward([]float64{trainData.X[k], trainData.Y[k]})
 				target := 0.0
 				if trainData.Class[k] {
 					target = 1.0
