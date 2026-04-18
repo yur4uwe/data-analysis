@@ -1,0 +1,50 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Wails Debug",
+      "type": "go",
+      "request": "launch",
+      "mode": "exec",
+      "program": "${workspaceFolder}/build/bin/labs",
+      "preLaunchTask": "wails-build-debug",
+      "env": {
+        "WEB_DEBUG": "1"
+      },
+      "args": [],
+      "showLog": true,
+      "logOutput": "rpc"
+    },
+    {
+      "name": "Wails Dev Mode",
+      "type": "go",
+      "request": "launch",
+      "mode": "debug",
+      "program": "${workspaceFolder}",
+      "preLaunchTask": "wails-dev",
+      "env": {
+        "WEB_DEBUG": "1"
+      },
+      "cwd": "${workspaceFolder}",
+      "args": [],
+      "showLog": true
+    },
+    {
+      "name": "Chrome DevTools (Frontend)",
+      "type": "chrome",
+      "request": "attach",
+      "port": 9222,
+      "pathMapping": {
+        "/": "${workspaceFolder}/frontend/src/",
+        "/wails": "${workspaceFolder}/build/"
+      }
+    }
+  ],
+  "compounds": [
+    {
+      "name": "Debug Backend + Frontend",
+      "configurations": ["Wails Dev Mode", "Chrome DevTools (Frontend)"],
+      "stopAll": true
+    }
+  ]
+}

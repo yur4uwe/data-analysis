@@ -1,8 +1,10 @@
 package neuron
 
 import (
+	"fmt"
 	"labs/charting"
 	"math"
+	"strings"
 )
 
 var (
@@ -25,15 +27,7 @@ var (
 		BaseDataset: charting.BaseDataset{
 			Label: "Loss Landscape",
 			GraphVariables: []charting.MutableField{
-				{
-					ID:      VarHeatmapPrecisionID,
-					Label:   "Heatmap Steps",
-					Default: 25,
-					Min:     10,
-					Max:     100,
-					Step:    5,
-					Control: charting.ControlRange,
-				},
+				VarHeatmapPrecision,
 			},
 		},
 	}
@@ -83,6 +77,12 @@ func RenderTrajectory(req *charting.RenderRequest) (res *charting.RenderResponse
 
 	// Get specific training result
 	trainRes := lastTrainResults[actIdx]
+
+	finalW := trainRes.WeightsHistory[len(trainRes.WeightsHistory)-1]
+	finalB := trainRes.BiasHistory[len(trainRes.BiasHistory)-1]
+	var sb strings.Builder
+	fmt.Fprintf(&sb, "Formula: %s(%.4fx + %.4fy + %.4f)", names[actIdx], finalW[0], finalW[1], finalB)
+	chartCopy.UpdateVariableLabel(VarFormulaID, sb.String())
 
 	// 2. Determine Weight Range from History
 	var minW1, maxW1, minW2, maxW2 float64
@@ -136,7 +136,6 @@ func RenderTrajectory(req *charting.RenderRequest) (res *charting.RenderResponse
 	step1 := (maxW1 - minW1) / float64(precision)
 	step2 := (maxW2 - minW2) / float64(precision)
 
-	finalB := trainRes.BiasHistory[len(trainRes.BiasHistory)-1]
 	if math.IsNaN(finalB) || math.IsInf(finalB, 0) {
 		finalB = 0
 	}

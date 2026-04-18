@@ -10,5 +10,8 @@
   "author": {
     "name": "yur4uwe",
     "email": "tsg9515@gmail.com"
+  },
+  "debug": {
+    "debounce": 500
   }
 }

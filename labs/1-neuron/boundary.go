@@ -33,6 +33,9 @@ var (
 	ProbabilityHeatmapDataset = charting.HeatmapDataset{
 		BaseDataset: charting.BaseDataset{
 			Label: "Probability Area",
+			GraphVariables: []charting.MutableField{
+				VarHeatmapPrecision,
+			},
 		},
 	}
 
@@ -65,6 +68,8 @@ var (
 	}
 )
 
+var names = []string{"Sigmoid", "Tanh", "ReLU"}
+
 func RenderBoundary(req *charting.RenderRequest) (res *charting.RenderResponse) {
 	res = charting.NewRenderResponse()
 	if err := ensureTrained(req); err != nil {
@@ -75,7 +80,8 @@ func RenderBoundary(req *charting.RenderRequest) (res *charting.RenderResponse) 
 
 	alpha := req.GetVariable(VarAlphaID)
 	actIdx := int(req.GetVariable(VarActivationID))
-	precision := int(req.GetVariable(VarHeatmapPrecisionID))
+	varPrecision, _ := req.GetGraphVariable(BoundaryChartID, GraphHeatmapID, VarHeatmapPrecisionID)
+	precision := int(varPrecision)
 
 	act, _ := getActivation(actIdx, alpha)
 
@@ -84,8 +90,6 @@ func RenderBoundary(req *charting.RenderRequest) (res *charting.RenderResponse) 
 
 	finalW := trainRes.WeightsHistory[len(trainRes.WeightsHistory)-1]
 	finalB := trainRes.BiasHistory[len(trainRes.BiasHistory)-1]
-
-	names := []string{"Sigmoid", "Tanh", "ReLU"}
 
 	var sb strings.Builder
 	fmt.Fprintf(&sb, "Formula: %s(%.4fx + %.4fy + %.4f)", names[actIdx], finalW[0], finalW[1], finalB)

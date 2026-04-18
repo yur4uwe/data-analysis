@@ -66,6 +66,16 @@ var (
 		Options: []string{"Sigmoid", "Tanh", "ReLU"},
 	}
 
+	VarHeatmapPrecision = charting.MutableField{
+		ID:      VarHeatmapPrecisionID,
+		Label:   "Heatmap Precision",
+		Default: 25,
+		Min:     10,
+		Max:     100,
+		Step:    5,
+		Control: charting.ControlRange,
+	}
+
 	DataChart = charting.Chart{
 		ID:          DataChartID,
 		Title:       "Data",

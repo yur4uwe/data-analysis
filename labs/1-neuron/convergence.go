@@ -1,8 +1,10 @@
 package neuron
 
 import (
+	"fmt"
 	"labs/charting"
 	"math"
+	"strings"
 )
 
 var (
@@ -61,6 +63,9 @@ func RenderConvergence(req *charting.RenderRequest) (res *charting.RenderRespons
 
 	chartCopy := charting.CopyChart(ConvergenceChart)
 
+	var sb strings.Builder
+	sb.WriteString("Formulas:\n")
+
 	// Update datasets for all three activations
 	updateLoss := func(graphID string, actIdx int) {
 		trainRes := lastTrainResults[actIdx]
@@ -72,12 +77,15 @@ func RenderConvergence(req *charting.RenderRequest) (res *charting.RenderRespons
 			val := l
 			lossPoints = append(lossPoints, charting.DataPoint{X: float64(i), Y: &val})
 		}
+		fmt.Fprintf(&sb, "%s(%.4fx + %.4fy + %.4f)\n", names[actIdx], trainRes.WeightsHistory[len(trainRes.WeightsHistory)-1][0], trainRes.WeightsHistory[len(trainRes.WeightsHistory)-1][1], trainRes.BiasHistory[len(trainRes.BiasHistory)-1])
 		chartCopy.UpdateDataPointsForDataset(graphID, lossPoints)
 	}
 
 	updateLoss(GraphLossSigmoidID, 0)
 	updateLoss(GraphLossTanhID, 1)
 	updateLoss(GraphLossReLUID, 2)
+
+	chartCopy.UpdateVariableLabel(VarFormulaID, sb.String())
 
 	res.AddChart(ConvergenceChartID, &chartCopy)
 	return res
