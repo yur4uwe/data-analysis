@@ -214,3 +214,56 @@ func (hd *HeatmapDataset) Copy() Dataset {
 	}
 	return &newHD
 }
+
+type AnimationDataset struct {
+	BaseDataset
+	Data   []DataPoint   `json:"data,omitempty"`
+	Frames [][]DataPoint `json:"frames,omitempty"`
+}
+
+var _ Dataset = &AnimationDataset{}
+
+func (ad *AnimationDataset) UpdateData(data []any) {
+	// For AnimationDataset, UpdateData expects a slice of slices of DataPoints (the frames)
+	// or just a slice of DataPoints (the initial state)
+	if len(data) == 0 {
+		return
+	}
+
+	// Try to see if it's frames
+	if frames, ok := data[0].([][]DataPoint); ok {
+		ad.Frames = frames
+		if len(frames) > 0 {
+			ad.Data = frames[0]
+		}
+		return
+	}
+
+	// Fallback to updating just the initial state
+	ad.Data = AnyToPoints(data)
+}
+
+func (ad *AnimationDataset) GetData() []any {
+	res := make([]any, len(ad.Data))
+	for i, v := range ad.Data {
+		res[i] = v
+	}
+	return res
+}
+
+func (ad *AnimationDataset) Copy() Dataset {
+	newAD := *ad
+	newAD.BaseDataset = ad.CopyBase()
+	if ad.Data != nil {
+		newAD.Data = make([]DataPoint, len(ad.Data))
+		copy(newAD.Data, ad.Data)
+	}
+	if ad.Frames != nil {
+		newAD.Frames = make([][]DataPoint, len(ad.Frames))
+		for i := range ad.Frames {
+			newAD.Frames[i] = make([]DataPoint, len(ad.Frames[i]))
+			copy(newAD.Frames[i], ad.Frames[i])
+		}
+	}
+	return &newAD
+}

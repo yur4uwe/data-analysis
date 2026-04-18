@@ -11,6 +11,7 @@ import (
 	"labs/labs/forecasting"
 	forecastinglinparab "labs/labs/forecasting-lin-parab"
 	"labs/labs/holt"
+	network "labs/labs/neural-network"
 	"labs/labs/optimizations"
 	"labs/labs/polyapprox"
 	"labs/labs/render"
@@ -51,6 +52,7 @@ func (a *App) startup(ctx context.Context) {
 	a.registry[optimizations.LabID] = charting.NewProvider(optimizations.Config)
 	a.registry[forecastinglinparab.LabID] = charting.NewProvider(forecastinglinparab.LinParabConfig)
 	a.registry[neuron.LabID] = charting.NewProvider(neuron.Config)
+	a.registry[network.LabID] = charting.NewProvider(network.Config)
 
 	fmt.Printf("Registered %d labs\n", len(a.registry))
 }

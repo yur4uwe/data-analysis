@@ -329,3 +329,66 @@ button.success:hover {
     min-height: 400px;
     width: 100%;
 }
+
+/* Animation indicator */
+#animation-status {
+    position: absolute;
+    top: 20px;
+    left: 30px;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: bold;
+    z-index: 1000;
+    transition: all 0.3s ease;
+    box-shadow: var(--shadow);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: default;
+}
+
+.animation-playing {
+    background-color: var(--accent-color);
+    color: white;
+    opacity: 1;
+    pointer-events: none;
+}
+
+.animation-playing::before {
+    content: "";
+    width: 8px;
+    height: 8px;
+    background-color: white;
+    border-radius: 50%;
+    animation: pulse 1s infinite;
+}
+
+.animation-finished {
+    background-color: var(--success-color);
+    color: white;
+    opacity: 0.9;
+    cursor: pointer;
+    pointer-events: auto;
+}
+
+.animation-finished:hover {
+    transform: scale(1.05);
+    opacity: 1;
+}
+
+.animation-finished::after {
+    content: " ↺";
+    font-size: 16px;
+}
+
+.animation-hidden {
+    opacity: 0;
+    transform: translateY(-10px);
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.5); opacity: 0.5; }
+    100% { transform: scale(1); opacity: 1; }
+}

@@ -51,6 +51,34 @@ export function renderChartInto(chartConfig: SafeChart, container: HTMLElement) 
   const labels = Array.isArray(chartConfig.labels) ? chartConfig.labels : [];
   const traces = Object.values(chartConfig.datasets || {}).map(processDatasetToPlotly(chartType, labels));
 
+  // Extract frames if any dataset is an AnimationDataset
+  let maxFrames = 0;
+  traces.forEach(t => {
+    if (t._frames && t._frames.length > maxFrames) {
+      maxFrames = t._frames.length;
+    }
+  });
+
+  const plotlyFrames: any[] = [];
+  if (maxFrames > 0) {
+    for (let i = 0; i < maxFrames; i++) {
+      const frameData = traces.map(t => {
+        if (t._frames && t._frames[i]) {
+          return {
+            x: t._frames[i].map((p: any) => p.x),
+            y: t._frames[i].map((p: any) => p.y)
+          };
+        }
+        return {}; // No update for this trace in this frame
+      });
+      plotlyFrames.push({
+        name: `frame_${i}`,
+        data: frameData,
+        traces: traces.map((_, index) => index)
+      });
+    }
+  }
+
   const layout = {
     ...defaultPlotlyLayout(chartConfig.title || "", chartType, chartConfig as any),
     ...newPlotlyAxes(chartConfig as any)
@@ -67,6 +95,45 @@ export function renderChartInto(chartConfig: SafeChart, container: HTMLElement) 
     Plotly.newPlot(plotlyDiv, traces as any, layout as any, config).then(() => {
       // One more resize to be absolutely sure layout changes during render didn't break it
       Plotly.Plots.resize(plotlyDiv);
+
+      if (plotlyFrames.length > 0) {
+        // Create or get animation status indicator
+        let status = document.getElementById("animation-status");
+        if (!status) {
+          status = document.createElement("div");
+          status.id = "animation-status";
+          container.appendChild(status);
+        }
+        
+        const runAnimation = () => {
+          if (!status) return;
+          status.textContent = "Playing Animation...";
+          status.className = "animation-playing";
+
+          Plotly.animate(plotlyDiv, undefined, {
+            frame: { duration: 200, redraw: false },
+            transition: { duration: 100, easing: "linear" },
+            mode: "afterall"
+          }).then(() => {
+            if (status) {
+              status.textContent = "Replay Animation";
+              status.className = "animation-finished";
+              status.onclick = () => runAnimation();
+              
+              // Only hide after some time if we don't click it
+              setTimeout(() => {
+                if (status && status.className === "animation-finished") {
+                  status.className = "animation-hidden";
+                }
+              }, 5000);
+            }
+          });
+        };
+
+        Plotly.addFrames(plotlyDiv, plotlyFrames).then(() => {
+          runAnimation();
+        });
+      }
     });
   });
 }

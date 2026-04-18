@@ -1,5 +1,5 @@
 import { charting } from "../wailsjs/go/models";
-import { Dataset, isGridDataset, isHeatmapDataset, isCategoricalDataset } from "./types";
+import { Dataset, isGridDataset, isHeatmapDataset, isCategoricalDataset, isAnimationDataset } from "./types";
 import { Layout as PlotlyLayout } from "plotly.js-dist-min";
 
 export const formatScientific = (value: number | string): string => {
@@ -59,7 +59,7 @@ export function newPlotlyAxes(chartConfig: charting.Chart) {
 		}
 	};
 
-	return {
+	const axes: any = {
 		xaxis: {
 			type: mapAxisType(chartConfig.xAxisConfig),
 			title: {
@@ -85,9 +85,16 @@ export function newPlotlyAxes(chartConfig: charting.Chart) {
 			zerolinecolor: "#000000",
 			zerolinewidth: 2,
 			tickfont: { size: 12 }
-			// Removed tickformat ".2e" to avoid forcing scientific notation if not needed
 		}
 	};
+
+	// Force aspect ratio to be 1:1 if requested in chart configuration
+	if (chartConfig.squareLayout) {
+		axes.yaxis.scaleanchor = "x";
+		axes.yaxis.scaleratio = 1;
+	}
+
+	return axes;
 }
 
 export const processDatasetToPlotly = (chartType: string, labels: string[]) => (dataset: Dataset): any => {
@@ -124,9 +131,24 @@ export const processDatasetToPlotly = (chartType: string, labels: string[]) => (
 		};
 	}
 
+	if (isAnimationDataset(dataset)) {
+		const x = dataset.data.map(p => (p as any)?.x);
+		const y = dataset.data.map(p => (p as any)?.y);
+
+		return {
+			...base,
+			type: "scatter",
+			mode: "lines+markers",
+			x,
+			y,
+			line: { color: dataset.borderColor, width: dataset.borderWidth },
+			_frames: (dataset as any).frames // Store for later use in renderChartInto
+		};
+	}
+
 	if (isGridDataset(dataset)) {
-		const x = dataset.data.map(p => p.x);
-		const y = dataset.data.map(p => p.y);
+		const x = dataset.data.map(p => (p as any)?.x);
+		const y = dataset.data.map(p => (p as any)?.y);
 
 		const radius = (dataset as any).pointRadius ?? 6;
 		const hideLine = (dataset as any).hideLine ?? false;

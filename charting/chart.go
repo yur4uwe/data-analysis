@@ -30,6 +30,7 @@ type Chart struct {
 	Labels         []string                             `json:"labels,omitempty"` // For indexed data (line/bar charts)
 	ChartVariables []MutableField                       `json:"chartVariables"`   // Fields affecting this chart only
 	Misc           string                               `json:"misc,omitempty"`   // Extra data/metadata
+	SquareLayout   bool                                 `json:"squareLayout"`     // Force 1:1 aspect ratio
 	RenderFunc     func(*RenderRequest) *RenderResponse `json:"-"`
 }
 

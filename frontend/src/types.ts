@@ -64,15 +64,31 @@ export type HeatmapDataset = BaseDataset & {
 }
 
 /**
+ * Represents a dataset with frames for animation.
+ * Mapped from charting.AnimationDataset.
+ */
+export type AnimationDataset = BaseDataset & {
+    data: DataPoint[]
+    frames: DataPoint[][]
+}
+
+/**
  * Discriminated union of all possible dataset types.
  */
-export type Dataset = GridDataset | CategoricalDataset | HeatmapDataset
+export type Dataset = GridDataset | CategoricalDataset | HeatmapDataset | AnimationDataset
 
 /**
  * Type-safe extension of the generated Chart model.
  */
 export interface SafeChart extends Omit<charting.Chart, 'datasets'> {
     datasets: Record<string, Dataset>
+}
+
+/**
+ * Type guard for AnimationDataset.
+ */
+export function isAnimationDataset(ds: Dataset): ds is AnimationDataset {
+    return (ds as any).frames !== undefined;
 }
 
 /**

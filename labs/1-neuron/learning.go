@@ -55,7 +55,7 @@ func train(split *ClassificationSplit, maxEpochs uint32, lr float64, targetAccur
 		ValidationLossHistory: make([]float64, 0, maxEpochs),
 	}
 
-	for epoch := uint32(0); epoch < maxEpochs; epoch++ {
+	for epoch := range maxEpochs {
 		indices := rand.Perm(len(points))
 
 		for _, pointIdx := range indices {

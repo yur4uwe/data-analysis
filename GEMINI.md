@@ -5,34 +5,36 @@ This project is a Wails-based application that bridges a Go backend (performing 
 ## 🏗 Project Structure
 
 - **`/charting`**: Core Go models for the visualization adapter.
-  - `chart.go`: Defines `Chart` and `DataPoint`.
+  - `chart.go`: Defines `Chart`, `DataPoint`, and `MutableField`.
   - `dataset.go`: Defines the `Dataset` interface and concrete types:
     - `GridDataset`: For Scatter, Line, and Bubble charts (uses `DataPoint`).
     - `CategoricalDataset`: For Bar and Pie charts (uses `[]any` for values).
     - `HeatmapDataset`: For Heatmaps (uses `HeatmapPoint`).
-  - `render.go`: Defines `RenderRequest` and `RenderResponse`.
+  - `render.go`: Defines `RenderRequest`, `RenderResponse`, and `CachePolicy`.
+  - `lab.go`: Defines `LabMetadata`, `LabConfig`, and `GenericProvider`.
 - **`/labs`**: Scientific implementations.
-  - Each sub-package (e.g., `cluster`, `stats`) contains a `RenderFunc` that maps raw data to the `charting` models.
-- **`/frontend/src`**:
-  - `chart-render.ts`: The "Brain" of the visualization. Handles canvas creation and Chart.js instantiation.
-  - `static-config.ts`: Global Chart.js defaults (colors, fonts, zoom plugins).
-  - `events.ts` & `fetch.ts`: Manages the asynchronous bridge between Wails events and the UI.
-- **`/uncsv`**: Custom high-performance CSV decoder for `DataPoint` structures.
+  - Sub-packages include: `1-neuron`, `cluster`, `forecasting`, `forecasting-lin-parab`, `holt`, `neural-network`, `optimizations`, `polyapprox`, `stats`, `visualization`.
+  - Each contains a `RenderFunc` and a `Config` (type `charting.LabConfig`).
+- **`/analysis`**: Low-level mathematical functions (e.g., polynomial fitting).
+- **`/uncsv`**: High-performance CSV decoder for `DataPoint` structures.
+- **`app.go`**: The Wails Application entry point, handles lab registration and the event-driven bridge.
+- **`cache.go`**: Implements `ResponseCache` to store and reuse `RenderResponse` objects based on MD5 hashes of `RenderRequest`.
 
 ## 🔄 The Render Flow
 
-The application uses an **Asynchronous Event-Driven Pipeline** to keep the UI responsive during complex calculations.
+The application uses an **Asynchronous Event-Driven Pipeline** with caching to keep the UI responsive.
 
 1.  **Interaction**: User modifies a `MutableField` (slider/select) or clicks **Rerender**.
 2.  **JS Request**: `fetchChartData()` gathers all current UI variables into a `RenderRequest`.
 3.  **Go Invocation**: `App.Render(req)` is called.
-    - It immediately returns to the JS side to free the UI thread.
-    - A goroutine is spawned to execute the scientific logic.
-4.  **Backend Execution**: The `LabProvider` locates the specific `RenderFunc`.
-    - Data is fetched (usually from `/data/*.csv`).
-    - Math is performed (e.g., K-Means, Silhouette Scores).
+    - It immediately returns to the JS side.
+    - **Cache Check**: If an identical request exists in `ResponseCache`, the cached response is emitted immediately.
+    - **Execution**: If not cached, a goroutine is spawned to execute the scientific logic.
+4.  **Backend Execution**: The `LabProvider` (usually `GenericProvider`) locates the specific `RenderFunc`.
+    - Data is fetched (usually from `/data/*.csv` or generated).
+    - Math is performed.
     - A `charting.Chart` object is populated with datasets.
-5.  **Event Emit**: Once finished, the Go backend emits a `renderComplete` event via Wails Runtime.
+5.  **Event Emit**: Once finished, the backend stores the result in cache and emits a `renderComplete` event (or `renderError`) via Wails Runtime.
 6.  **JS Receipt**: `EventsOn("renderComplete")` in `main.ts` receives the `RenderResponse`.
 7.  **Draw**: Based on the `chart.type`, the frontend calls either `renderChartInto` or `renderMultiChart`.
 
@@ -54,30 +56,31 @@ Designed for comparisons (e.g., Silhouette plots where each cluster needs its ow
 - **Typed Datasets**: Always instantiate the correct dataset type for your chart:
   - Use `GridDataset` when you have `{x, y}` coordinates.
   - Use `CategoricalDataset` when you have indexed values corresponding to `chart.Labels`.
-  - Use `HeatmapDataset` for 3D data visualizations.
 - **Labels & length**: Always use `Array.isArray(labels) && labels.length > 0` before processing. The frontend is defensive against `null` labels from the backend.
+- **Surgical Updates**: Use helper methods on the `Chart` object to populate data safely:
+  - `UpdatePointsForDataset(id, x, y)`: Converts raw float slices to `DataPoint` objects.
+  - `UpdateDataForDataset(id, data)`: For `CategoricalDataset` using `[]any`.
+  - `GenerateLabels(precision)`: Automatically creates X-axis labels from the dataset with the most points.
 - **Datalabels Plugin**: 
   - For **Scatter**: Uses `DataLabels` for per-point tooltips/labels.
   - For **Pie/Doughnut**: Automatically calculates and displays percentages.
-  - For **Bar**: Usually disabled globally to prevent clutter, unless `DataLabels` are explicitly provided.
 - **Colors**: Use `charting.ToColor("#hex")` to ensure color strings are wrapped in the `Color` type.
-- **Responsive Height**: All charts use `maintainAspectRatio: false`. The parent container must have a `min-height` (defined in `style.css` as 500px for single and 400px for multi-wrappers) to prevent vertical squishing.
-- **Coordinate Systems**: 
-  - Use `charting.LinearAxis` for Scatter/Bubble.
-  - Use `charting.CategoryAxis` for Bar/Line with discrete labels.
+- **Responsive Height**: All charts use `maintainAspectRatio: false`. The parent container must have a `min-height` (defined in `style.css`).
 
 ## 🧬 Architecture & Data Integrity
 
 ### 1. Handling Missing Data (The `null` pattern)
 - **`[]any` over `[]float64`**: The `CategoricalDataset.Data` field uses `[]any` to allow `nil` values.
-- **Visual Integrity**: Always use `nil` for indices where data is unavailable (e.g., early forecasting steps). This prevents Chart.js from jumping to `0`, which skews the Y-axis.
-- **Conversion**: Use `charting.ToAnySlice(data []float64)` to safely convert standard slices for the adapter.
+- **Visual Integrity**: Always use `nil` for indices where data is unavailable. This prevents Chart.js from jumping to `0`.
 
 ### 2. Variable Registration & Metadata
-- **Static Declaration**: All `MutableField`s (for both Charts and specific Datasets) must be declared and assigned to the `Chart` template during package initialization (`var` or `init`).
-- **Discovery**: The `NewLabConfig` constructor scans these templates to generate metadata. Fields added dynamically during `Render` will not be visible in the UI sidebars/controls.
-- **Graph-Level Stats**: Use the `GraphVariables` slice on a `ChartDataset` to display read-only statistics (using `ControlNoControl`) specific to that dataset.
+- **Static Declaration**: All `MutableField`s must be declared in the `Chart` template during package initialization.
+- **Discovery**: `charting.NewLabConfig` scans templates to generate `LabMetadata`. Fields added dynamically during `Render` will not be visible in the UI sidebars.
+- **Graph-Level Stats**: Use the `GraphVariables` map on `ChartMetadata` to display read-only statistics specific to a dataset.
 
 ### 3. State Management
-- **Surgical Updates**: Always use `copyChart.UpdateDataForDataset(id, data)` or `copyChart.UpdatePointsForDataset(id, x, y)` instead of direct field assignment to ensure internal consistency.
-- **Immutable Templates**: Never modify the global `Chart` template. Use `charting.CopyChart(Template)` at the start of every `RenderFunc`.
+- **Immutable Templates**: Never modify the global `Chart` template. Use `charting.CopyChart(Template)` at the start of every `RenderFunc`. `CopyChart` performs a deep copy of configuration while resetting data fields.
+
+### 4. Caching Policy
+- **MD5 Keys**: `ResponseCache` uses an MD5 hash of the JSON-marshaled `RenderRequest` as a lookup key.
+- **Policy Control**: Use `CachePolicy` in `RenderResponse` to control behavior (`CachePolicyDontCache`, `CachePolicyWithExpiration`).
