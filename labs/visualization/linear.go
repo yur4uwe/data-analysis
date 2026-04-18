@@ -1,7 +1,6 @@
 package visualization
 
 import (
-	"fmt"
 	"labs/charting"
 	"labs/uncsv"
 	"os"
@@ -44,7 +43,6 @@ type DailyRevenue struct {
 }
 
 func RenderLinear(req *charting.RenderRequest) (res *charting.RenderResponse) {
-	fmt.Printf("Rendering %s\n", req.ChartID)
 	f, err := os.Open("./data/lab_4_var_12_revenue_per_day.csv")
 	if err != nil {
 		return res.NewErrorf("error while opening file: %v", err)

@@ -1,9 +1,11 @@
 package neuron
 
 import (
+	"fmt"
 	"labs/analysis"
 	"labs/charting"
 	"math"
+	"strings"
 )
 
 var (
@@ -21,7 +23,11 @@ var (
 			GraphClass1ID:   &BoundaryClass1Dataset,
 			GraphBoundaryID: &DecisionBoundaryLineDataset,
 		},
-		ChartVariables: append(SharedVariables, ActivationFuncField),
+		ChartVariables: append(
+			SharedVariables,
+			ActivationFuncField,
+			DisplayFormula,
+		),
 	}
 
 	ProbabilityHeatmapDataset = charting.HeatmapDataset{
@@ -70,9 +76,6 @@ func RenderBoundary(req *charting.RenderRequest) (res *charting.RenderResponse) 
 	alpha := req.GetVariable(VarAlphaID)
 	actIdx := int(req.GetVariable(VarActivationID))
 	precision := int(req.GetVariable(VarHeatmapPrecisionID))
-	if precision < 10 {
-		precision = 25
-	}
 
 	act, _ := getActivation(actIdx, alpha)
 
@@ -81,6 +84,13 @@ func RenderBoundary(req *charting.RenderRequest) (res *charting.RenderResponse) 
 
 	finalW := trainRes.WeightsHistory[len(trainRes.WeightsHistory)-1]
 	finalB := trainRes.BiasHistory[len(trainRes.BiasHistory)-1]
+
+	names := []string{"Sigmoid", "Tanh", "ReLU"}
+
+	var sb strings.Builder
+	fmt.Fprintf(&sb, "Formula: %s(%.4fx + %.4fy + %.4f)", names[actIdx], finalW[0], finalW[1], finalB)
+	chartCopy.UpdateVariableLabel(VarFormulaID, sb.String())
+	fmt.Println(sb.String())
 
 	minX, maxX := analysis.MinMax(trainData.X)
 	minY, maxY := analysis.MinMax(trainData.Y)

@@ -83,7 +83,6 @@ func GenerateNormalSamples(mean, stddev float64, sampleCount int) []float64 {
 }
 
 func salariesFor(position PositionType) []float64 {
-	fmt.Printf("salary records length %v", salaryRecords)
 	if salaryRecords == nil {
 		return nil
 	}

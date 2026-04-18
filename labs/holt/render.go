@@ -160,7 +160,6 @@ func RenderError(req *charting.RenderRequest) (res *charting.RenderResponse) {
 
 	bestAlpha, bestBeta, bestMSE := math.MaxFloat64, math.MaxFloat64, math.MaxFloat64
 
-	fmt.Printf("Calculating MSE grid for %s\n", OptimalChart.ID)
 	for i := range nAlpha {
 		alpha := minAlpha + step*float64(i)
 		for j := range nBeta {
@@ -168,7 +167,6 @@ func RenderError(req *charting.RenderRequest) (res *charting.RenderResponse) {
 
 			forecasts, _, _ := HoltForecast(trainExchangeRateData.ExchangeRate, alpha, beta)
 			forecastMSE := analysis.MSE(trainExchangeRateData.ExchangeRate, forecasts)
-			fmt.Printf("Alpha: %.2f, Beta: %.2f, MSE: %.4e\n", alpha, beta, forecastMSE)
 
 			if forecastMSE < bestMSE {
 				bestMSE = forecastMSE

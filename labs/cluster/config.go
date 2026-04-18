@@ -72,8 +72,6 @@ func clusterData(labels []int, centroids []charting.DataPoint, chart *charting.C
 			}
 		}
 
-		fmt.Printf("Average deviations for cluster %d is %.2f\n", cluster, deviations_sum/float64(len(cluster_points)))
-
 		key := fmt.Sprintf("cluster-%d", cluster)
 		chart.Datasets[key] = &charting.GridDataset{
 			BaseDataset: charting.BaseDataset{

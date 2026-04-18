@@ -22,6 +22,7 @@ const (
 	VarHeatmapPrecisionID = "heatmap_precision"
 	VarWeightMarginID     = "weight_margin"
 	VarActivationID       = "activation"
+	VarFormulaID          = "formula"
 
 	// Graph IDs (Datasets)
 	GraphClass0ID    = "c0"
@@ -49,6 +50,12 @@ var (
 		{ID: VarEpochsID, Label: "Epochs", Default: 100, Min: 10, Max: 1000, Step: 10, Control: charting.ControlRange},
 		{ID: VarLRID, Label: "Learning Rate", Default: 0.1, Min: 0.001, Max: 1.0, Step: 0.01, Control: charting.ControlRange},
 		{ID: VarAlphaID, Label: "Alpha", Default: 1.0, Min: 0.1, Max: 5.0, Step: 0.1, Control: charting.ControlRange},
+	}
+
+	DisplayFormula = charting.MutableField{
+		ID:      VarFormulaID,
+		Label:   "Formula",
+		Control: charting.ControlNoControl,
 	}
 
 	ActivationFuncField = charting.MutableField{
@@ -143,7 +150,7 @@ func splitData(data *ClassificationData) (c0, c1 []charting.DataPoint) {
 func getActivation(actIdx int, alpha float64) (func(float64) float64, func(float64) float64) {
 	switch actIdx {
 	case 1:
-		return newTahn(alpha)
+		return newTanh(alpha)
 	case 2:
 		return newReLU(alpha)
 	default:
@@ -161,7 +168,7 @@ func ensureTrained(req *charting.RenderRequest) error {
 	alpha := req.GetVariable(VarAlphaID)
 
 	// Train all three activation functions
-	for i := 0; i < 3; i++ {
+	for i := range 3 {
 		act, actDeriv := getActivation(i, alpha)
 		lastTrainResults[i] = train(trainData, epochs, lr, act, actDeriv)
 	}

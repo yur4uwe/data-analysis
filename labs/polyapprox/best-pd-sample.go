@@ -63,12 +63,10 @@ func RenderSamplePolynomialMSE(req *charting.RenderRequest) (res *charting.Rende
 	bestDegree := 1
 	minMSE := -1.0
 
-	fmt.Printf("Calculating MSE for %s\n", SampleMSEID)
 	for degree := range maxDegree - 1 {
 		degree += 1
 		coeffs, err := analysis.SolvePolynomialFit(points.X, points.Y, degree)
 		if err != nil {
-			fmt.Printf("Degree %d: fit failed (%s)\n", degree, err)
 			continue
 		}
 		predicted := make([]float64, len(points.X))
@@ -76,7 +74,6 @@ func RenderSamplePolynomialMSE(req *charting.RenderRequest) (res *charting.Rende
 			predicted[i] = analysis.EvaluatePolynomial(coeffs, points.X[i])
 		}
 		mse := analysis.MSE(points.Y, predicted)
-		fmt.Printf("Degree %d: MSE = %.4e\n", degree, mse)
 
 		if minMSE < 0 || mse < minMSE {
 			minMSE = mse

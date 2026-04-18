@@ -1,7 +1,6 @@
 package visualization
 
 import (
-	"fmt"
 	"labs/charting"
 	"math"
 )
@@ -80,7 +79,6 @@ func f(x float64) float64 {
 }
 
 func RenderFunction(req *charting.RenderRequest) (res *charting.RenderResponse) {
-	fmt.Printf("Rendering %s\n", req.ChartID)
 	start, ok := req.GetChartVariable(FunctionChartID, VariableStartID)
 	if !ok {
 		start = VariableStart.Default

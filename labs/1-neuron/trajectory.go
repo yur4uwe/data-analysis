@@ -18,7 +18,7 @@ var (
 			GraphLandscapeID: &LandscapeHeatmapDataset,
 			GraphPathID:      &LearningPathDataset,
 		},
-		ChartVariables: append(SharedVariables, ActivationFuncField),
+		ChartVariables: append(SharedVariables, ActivationFuncField, DisplayFormula),
 	}
 
 	LandscapeHeatmapDataset = charting.HeatmapDataset{
@@ -75,7 +75,7 @@ func RenderTrajectory(req *charting.RenderRequest) (res *charting.RenderResponse
 	actIdx := int(req.GetVariable(VarActivationID))
 
 	// Ensure precision is sane
-	varPrecision, _ := req.GetGraphVariable(TrajectoryChartID, GraphHeatmapID, VarHeatmapPrecisionID)
+	varPrecision, _ := req.GetGraphVariable(TrajectoryChartID, GraphLandscapeID, VarHeatmapPrecisionID)
 	precision := int(varPrecision)
 	margin := 0.5
 

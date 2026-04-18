@@ -119,8 +119,6 @@ func kmeans(points []charting.DataPoint, centroids []charting.DataPoint, maxIter
 			return nil, nil, errors.New("k-means: centroids haven't coverged")
 		}
 	}
-	fmt.Printf("Completed in %d iterations\n", i)
-
 	return labels, centroids, nil
 }
 

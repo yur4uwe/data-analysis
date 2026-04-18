@@ -19,7 +19,7 @@ var (
 			GraphLossTanhID:    &LossTanhDataset,
 			GraphLossReLUID:    &LossReLUDataset,
 		},
-		ChartVariables: SharedVariables,
+		ChartVariables: append(SharedVariables, DisplayFormula),
 	}
 
 	LossSigmoidDataset = charting.GridDataset{

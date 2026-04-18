@@ -376,7 +376,6 @@ func RenderOptimal(req *charting.RenderRequest) (res *charting.RenderResponse) {
 			bestWin = win
 			bestSlidingForecast = charting.F64ToPtr(slidingForecast)
 		}
-		fmt.Printf("Sliding window: win size = %d, MSE = %.5f\n", win, mse)
 	}
 
 	// 2. Find optimal alpha
@@ -397,7 +396,6 @@ func RenderOptimal(req *charting.RenderRequest) (res *charting.RenderResponse) {
 			bestAlpha = alpha
 			bestExpForecast = charting.F64ToPtr(expForecast)
 		}
-		fmt.Printf("Exponential smoothing: alpha = %.2f, MSE = %.5f\n", alpha, mse)
 	}
 
 	copyChart := charting.CopyChart(OptimalParametersChart)

@@ -1,7 +1,6 @@
 package visualization
 
 import (
-	"fmt"
 	"labs/charting"
 	"labs/uncsv"
 	"os"
@@ -50,7 +49,6 @@ type Spending struct {
 }
 
 func RenderBarPlot(req *charting.RenderRequest) (res *charting.RenderResponse) {
-	fmt.Printf("Rendering %s\n", req.ChartID)
 
 	f, err := os.Open("./data/lab_4_var_12_spending.csv")
 	if err != nil {
