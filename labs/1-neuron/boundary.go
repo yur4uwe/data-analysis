@@ -102,8 +102,12 @@ func RenderBoundary(req *charting.RenderRequest) (res *charting.RenderResponse) 
 	forwardSingle := newForward(act, finalW, finalB)
 	testConf := forwardSingle([]float64{testX, testY})
 
-	predText := fmt.Sprintf("Point (%.2f, %.2f) -> Confidence: %.4f (Class %d)",
-		testX, testY, testConf, map[bool]int{testConf >= 0.5: 1, testConf < 0.5: 0}[testConf >= 0.5])
+	class := 0
+	if testConf >= 0.5 {
+		class = 1
+	}
+	predText := fmt.Sprintf("Point (%.2f, %.2f) -> Prediction: %.4f (Class %d)",
+		testX, testY, testConf, class)
 	chartCopy.Datasets[GraphBoundaryID].UpdateVariableLabel(VarPredictionID, predText)
 
 	var sb strings.Builder
