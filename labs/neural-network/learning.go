@@ -18,7 +18,6 @@ func forward(w [][]float64, x []float64) []float64 {
 type TrainingResult struct {
 	WeightsHistory [][][]float64
 	EpochsTrained  uint32
-	TestAccuracy   float64
 	NumClusters    uint32
 }
 
@@ -55,8 +54,15 @@ func train(split []ClusterizationPoint, maxEpochs, numClusters uint32, lr float6
 		WeightsHistory: make([][][]float64, 0, maxEpochs),
 		EpochsTrained:  0,
 		NumClusters:    numClusters,
-		TestAccuracy:   0.0,
 	}
+
+	velocities := make([][]float64, numClusters)
+	for i := range velocities {
+		velocities[i] = make([]float64, 2)
+	}
+
+	// momentum_factor := 0.9
+	decay_rate := 0.95
 
 	for range maxEpochs {
 		for _, point := range split {
@@ -70,9 +76,17 @@ func train(split []ClusterizationPoint, maxEpochs, numClusters uint32, lr float6
 				}
 			}
 
+			// pushX := x[0] - w[maxIdx][0]
+			// pushY := x[1] - w[maxIdx][1]
+			//
+			// velocities[maxIdx][0] = (momentum_factor * velocities[maxIdx][0]) + lr*pushX
+			// velocities[maxIdx][1] = (momentum_factor * velocities[maxIdx][1]) + lr*pushY
+
 			newW := []float64{
 				w[maxIdx][0] + lr*(x[0]-w[maxIdx][0]),
 				w[maxIdx][1] + lr*(x[1]-w[maxIdx][1]),
+				// w[maxIdx][0] + velocities[maxIdx][0],
+				// w[maxIdx][1] + velocities[maxIdx][1],
 			}
 
 			// Re-normalize to stay on unit circle
@@ -85,7 +99,9 @@ func train(split []ClusterizationPoint, maxEpochs, numClusters uint32, lr float6
 				copy(wCopy[i], w[i])
 			}
 			res.WeightsHistory = append(res.WeightsHistory, wCopy)
+
 		}
+		lr = decay_rate * lr
 	}
 
 	return &res

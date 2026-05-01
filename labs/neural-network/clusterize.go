@@ -106,7 +106,7 @@ func RenderClusters(req *charting.RenderRequest) (res *charting.RenderResponse) 
 			BorderColor: "#000000",
 			BorderWidth: 3,
 			DataLabels:  centroidLabels,
-			ZIndex:      10, // Ensure centroids are on top
+			ZIndex:      10,
 		},
 		BackgroundColor: "#ffffff",
 		PointRadius:     12,
